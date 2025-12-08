@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='patient_dashboard.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <!--new line-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+
+                    <!--new line-->
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link active" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                        <p class="space-between"></p>
+                    </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                        <p class="space-between"></p>
+                    </li>
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
+                        <p class="space-between"></p>
+                    </li>
+                     <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-bar-chart-fill"></i> Diet Suggestion</a>
+                        <p class="space-between"></p>
+
+                    </li>
+		    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
+                        <p class="space-between"></p>
+                    </li>
+                       <li class="nav-item">
+                            <p class="space-between"></p>
+                            <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-lightbulb"></i> AI-Assistant</a>
+                            <p class="space-between"></p>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}"><i class="bi bi-capsule"></i> 24/7 Urgent Care</a>
+                        <p class="space-between"></p>
+                    </li>
+
+                    <li class="nav-item">
+                        <p class="space-between"></p>
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <p class="space-between"></p>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main  id="main-content" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Welcome, {{ name }}</h1>
+                <!--ANGSHU PART-->
+                <!-- This div contains Bell and ID, INSERT HERE -->
+                <div class="d-flex justify-content-end align-items-center" style="gap: 20px;">
+                    <!-- Bell Icon Angshu -->
+                    <div style="position: relative;">
+                        <button id="notificationBell" class="btn btn-link position-relative">
+                            <i class="bi bi-bell" style="font-size: 1.8rem;"></i>
+                            {% if notifications %}
+                                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ notifications|length }}
+                                </span>
+                            {% endif %}
+                        </button>
+
+                        <!-- Dropdown Notifications Angshu -->
+                        <!--<div id="notificationDropdown" class="dropdown-menu text-black" style="display:none; max-height:300px; overflow:auto; background-color: #ccf5d3;"-->
+                        <div id="notificationDropdown" class="dropdown-menu" style="display: none; max-height: 300px; overflow: auto; background-color: #ccf5d3; right: 0; left: auto; position: absolute;">
+
+                            {% if notifications %}
+                                {% for note in notifications %}
+                                    <div class="dropdown-item d-flex justify-content-between align-items-center" data-notif-id="{{ note.id }}">
+                                        <div>{{ note.message }}</div>
+                                        <button class="btn-close ms-2" onclick="removeNotification(this)"></button>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="dropdown-item text-muted">No new notifications</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                
+                    <div><p class="text-center"><strong>Your ID: {{ p_id }}</strong></p></div>
+                </div>
+            </div>
+                <!---->
+
+               <!-- <div><p class="text-center"><strong>Your ID: {{ p_id }}</strong></p></div>
+            </div> -->
+
+            <!-- Flash Message -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-success text-center" role="alert">
+                        {% for message in messages %}
+                            <p class="mb-0">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    <script>
+                        setTimeout(function () {
+                            window.location.href = "{{ url_for('patient_dashboard') }}";
+                        }, 5000);
+                    </script>
+                {% endif %}
+            {% endwith %}
+
+            <!-- SOS Sent message-->
+            {% if request.args.get('alert') == 'sos_sent' %}
+                <div class="alert alert-success alert-dismissible fade show text-center fw-bold mt-3" role="alert">
+                         Help is on the way!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+    
+
+            <div class="row">
+                <!-- Left: How to Use -->
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-body card-body-custom">
+                            <h4>How to use this website:</h4>
+                            <ul>
+                                <li>Update your profile from the "Update Profile" section.</li>
+                                <li>You need to fulfill your glucose level portion and the whole profile to make a successful appointment.</li>
+                                <li>Use glucometer to measure your glucose level 4 times before your appointment day.</li>
+                                <li>4 times: before breakfast, after breakfast, before lunch, before dinner</li>
+                                <li><a href="https://www.apollo247.com/blog/article/how-to-use-a-glucose-monitor">Step-by-step guidance to use a glucometer</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Notices -->
+                <div class="col-md-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header text-danger bg-light">
+                            <h5 class="mb-0">Important Notices</h5>
+                        </div>
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            {% if notices %}
+                                {% for notice in notices %}
+                                    <div class="alert alert-info mb-2 p-2">
+                                        <strong>{{ notice.date }}:</strong><br>
+                                        {{ notice.message }}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No new notices.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        
+
+            <!-- Glucose Levels Bar Chart -->
+            <div class="bar-chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="glucoseChart"></canvas>
+                </div>
+
+
+                <!--ANGSHU PART--> 
+                <!-- Wrapping box with fixed styling -->
+                <div class="update-message-container">
+                    <div class="last-updated">
+                        <strong>  Glucose Level Last Updated:</strong> {{ updated_on }}
+                    </div>
+
+                    {% if medication_message %}
+                    <div class="medication-reminder mt-2">
+                        <strong>Medication Reminder</strong><br>
+                        {{ medication_message }}
+                    </div>
+                    
+                    {% endif %}
+                </div>
+                <!---->
+
+            </div>
+        </main>
+    </div>
+</div>
+
+
+<!--GRAPH , remove the comment out sign while running the project-->
+<script>
+    const ctx = document.getElementById('glucoseChart').getContext('2d');
+    const glucoseChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{['Before Breakfast', 'After Breakfast', 'Before Lunch', 'Before Dinner'] | safe}},
+            datasets: [{
+                label: 'Glucose Levels (mmol/L)',
+                data: {{ glucose_data | tojson }},
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        
+
+        options: {
+        responsive: true,
+        plugins: {
+        legend: { position: 'top' },
+        annotation: {
+            annotations: {
+                healthyLine: {
+                    type: 'line',
+                    borderColor: 'green',
+                    borderWidth: 2,
+                    scaleID: 'y',
+                    value: 7,
+                    label: {
+                        content: 'Healthy Glucose Level (7 mmol/L)',
+                        enabled: true,
+                        position: 'start',
+                        backgroundColor: 'rgba(0,128,0,0.7)',
+                        color: 'white'
+                    }
+                }
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            suggestedMax: 20,
+            ticks: {
+                stepSize: 2,
+                callback: function(value) {
+                    return value + ' mmol/L';
+                }
+            }
+        }
+    }
+}
+
+
+
+    });
+</script>
+
+
+<!-- live location-->
+
+<script>
+    function triggerSOS() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+  
+          fetch("/fire_sos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ latitude: lat, longitude: lon })
+          }).then(() => {
+            window.location.href = "/patient_dashboard?alert=sos_sent";
+          });
+  
+        }, () => {
+          alert("❌ Location access denied.");
+        });
+      } else {
+        alert("Geolocation is not supported.");
+      }
+    }
+
+     document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("sidebarToggle");
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.getElementById("main-content");
+
+        toggleButton.addEventListener("click", function () {
+            sidebar.classList.toggle("sidebar-collapsed");
+            mainContent.classList.toggle("content-expanded");
+        });
+    });
+  </script>
+
+  <!--ANGSHU -->
+  <!--new code angshu-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var bell = document.getElementById('notificationBell');
+            var dropdown = document.getElementById('notificationDropdown');
+        
+            bell.addEventListener('click', function(event) {
+                event.stopPropagation();
+                if (dropdown.style.display === "none" || dropdown.style.display === "") {
+                    dropdown.style.display = "block";
+                } else {
+                    dropdown.style.display = "none";
+                }
+            });
+        
+            document.addEventListener('click', function(event) {
+                if (!dropdown.contains(event.target) && !bell.contains(event.target)) {
+                    dropdown.style.display = "none";
+                }
+            });
+        });
+        
+    
+        function removeNotification(button) {
+            const notification = button.closest('.dropdown-item');
+            if (notification) {
+                const notifId = notification.getAttribute('data-notif-id');
+                notification.remove();
+        
+                // Update counter
+                const badge = document.getElementById('notificationBadge');
+                if (badge) {
+                    let count = parseInt(badge.textContent);
+                    if (!isNaN(count)) {
+                        count--;
+                        if (count > 0) {
+                            badge.textContent = count;
+                        } else {
+                            badge.remove();
+                        }
+                    }
+                }
+        
+                // Send dismissal request
+                fetch(`/dismiss_notification/${notifId}`, {
+                    method: 'POST'
+                }).then(response => {
+                    if (!response.ok) {
+                        console.error("Failed to dismiss notification.");
+                    }
+                });
+            }
+        }
+        </script>
+
+  <!---->
+</body>
+</html>

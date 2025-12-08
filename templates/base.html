@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: var(--bs-body-font-family);
+            display: flex;
+            min-height: 100vh;
+            background-color: #ecf0f1;
+        }
+
+        .sidebar {
+            background-color: #f7f9fc;
+            width: 265px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; 
+            scrollbar-width: none; 
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Edge */
+        }
+
+        /* Adds space between the icon and the text */
+            .sidebar i {
+                margin-right: 10px;
+                font-size: 1.1rem; /* Optional: makes the icon slightly larger */
+                vertical-align: middle; /* Keeps it aligned with text */
+            }
+        .sidebar a {
+            padding: 7px 20px;
+            text-decoration: none;
+            color: #34495e;
+            display: block;
+            font-size: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px; /* Adds space specifically below each box */
+            margin-left: 10px;   /* Keeps space from the left edge */
+            margin-right: 10px;  /* Keeps space from the right edge */
+            margin-top: 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+           .sidebar a:not(:first-child) {
+            background-color: #dfe4ea; /* This is the grey box color */
+            font-weight: 500;
+        }
+        .sidebar a.active {
+            background-color: #007bff !important;
+            color: white;
+            font-weight: bold;
+        }
+
+        .sidebar a:hover {
+            background-color: #007bff !important;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            width: 100%;
+            flex: 1;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        footer {
+            padding: 10px;
+            text-align: center;
+            background-color: #34495e;
+            color: white;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        
+        .alert {
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+            <a href="{{ url_for('admin_dashboard') }}" {% if request.path == url_for('admin_dashboard') %}class="active"{% endif %}><i class="bi bi-grid-fill"></i>Dashboard</a>
+            <a href="{{ url_for('static', filename='dummy.html') }}" {% if request.path == url_for('static', filename='dummy.html') %}class="active"{% endif %}><i class="bi bi-person-fill"></i>Doctors</a>
+            <a href="{{ url_for('static', filename='dummy.html') }}" {% if request.path == url_for('static', filename='dummy.html') %}class="active"{% endif %}><i class="bi bi-check-circle-fill"></i>Verify</a>
+            <a href="{{ url_for('static', filename='dummy.html') }}" {% if request.path == url_for('static', filename='dummy.html') %}class="active"{% endif %}><i class="bi bi-list-nested"></i>Appointments</a>
+            <a href="{{ url_for('static', filename='dummy.html') }}" {% if request.path == url_for('static', filename='dummy.html')%}class="active"{% endif %}><i class="bi bi-broadcast"></i>Emergency Alerts</a>
+            <a href="{{ url_for('static', filename='dummy.html') }}" {% if request.path == url_for('static', filename='dummy.html') %}class="active"{% endif %}><i class="bi bi-file-text-fill"></i>Write Important Notice</a>
+            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>Log Out</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' if category == 'warning' else 'info' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block footer %}{% endblock %}
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>
