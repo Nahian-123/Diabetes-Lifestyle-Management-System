@@ -112,7 +112,7 @@ def login():
 
             # >>> NEW LOGIC: If doctor logs in → Send to face verification
             if session['role'] == 'doctor':
-                return redirect(url_for('verify_face_page'))
+                return redirect(url_for('doctor_dashboard'))   ## I changed
 
             # Normal login flow for others
             if session['role'] == 'admin':
@@ -124,100 +124,84 @@ def login():
 
     return render_template('login.html')
 
+# ############################################################
+# # >>> NEW: FACE VERIFICATION PAGE <<<
+# ############################################################
+# @app.route('/verify')
+# @login_required
+# def verify_face_page():
+#     if session.get('role') != 'doctor':
+#         return redirect(url_for('login'))
+#     return render_template("verify.html")
 
 
-############################################################
-# >>> NEW: FACE VERIFICATION PAGE <<<
-############################################################
-@app.route('/verify')
-@login_required
-def verify_face_page():
-    if session.get('role') != 'doctor':
-        return redirect(url_for('login'))
-    return render_template("verify.html")
+# def get_doctor_image_path(doctor_id):
+#     UPLOAD_FOLDER = "uploads/doctors/"
+#     valid_ext = ["jpeg", "jpg", "png"]
 
-
-def get_doctor_image_path(doctor_id):
-    UPLOAD_FOLDER = "uploads/doctors/"
-    valid_ext = ["jpeg", "jpg", "png"]
-
-    for ext in valid_ext:
-        path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.{ext}")
-        if os.path.exists(path):
-            return path
+#     for ext in valid_ext:
+#         path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.{ext}")
+#         if os.path.exists(path):
+#             return path
     
-    return None
+#     return None
 
 
-############################################################
-# >>> NEW: FACE MATCHING API ENDPOINT <<<
-############################################################
-@app.post("/verify-face")
-def verify_face_api():
+# @app.post("/verify-face")
+# def verify_face_api():
 
-    doctor_id = session.get("user_id")
+#     doctor_id = session.get("user_id")
 
-    if not doctor_id:
-        return jsonify({"match": False, "message": "Not logged in"})
+#     if not doctor_id:
+#         return jsonify({"match": False, "message": "Not logged in"})
 
-    UPLOAD_FOLDER = "uploads/doctors/"
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+#     UPLOAD_FOLDER = "uploads/doctors/"
+#     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-    data = request.json
-    live_image = data["live_image"]
+#     data = request.json
+#     live_image = data["live_image"]
 
-    stored_image_path = get_doctor_image_path(doctor_id)
+#     stored_image_path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.jpg")
 
-    if stored_image_path is None:
-        return jsonify({"match": False, "message": "Doctor photo not found in JPG/PNG format."})
+#     if not os.path.exists(stored_image_path):
+#         print(f"[v0] ERROR: Doctor image not found at {stored_image_path}")
+#         return jsonify({"match": False, "message": f"Doctor photo not found. Expected at: {stored_image_path}"})
 
+#     # Convert base64 → actual file
+#     live_image = live_image.replace("data:image/jpg;base64,", "")
+#     live_bytes = base64.b64decode(live_image)
 
-    # Convert base64 → actual file
-    live_image = live_image.replace("data:image/jpeg;base64,", "")
-    live_bytes = base64.b64decode(live_image)
+#     live_path = "live_temp.jpg"
+#     with open(live_path, "wb") as f:
+#         f.write(live_bytes)
 
-    live_path = "live_temp.jpeg"
-    with open(live_path, "wb") as f:
-        f.write(live_bytes)
+#     # Perform face verification
+#     try:
+#         print(f"[v0] Comparing {stored_image_path} with {live_path}")
+#         result = DeepFace.verify(
+#         img1_path=stored_image_path,
+#         img2_path=live_path,
+#         model_name="VGG-Face",
+#         distance_metric="cosine",
+#         threshold=0.6,   # ← LOWER = strict, HIGHER = lenient
+#         enforce_detection=False
+#         )
 
-    # Perform face verification
-    # Perform face verification (VERY EASY MODE)
-    try:
-        print(f"[v2] Comparing {stored_image_path} with {live_path}")
+#         if result["verified"]:
+#             print(f"[v0] Face verified! Distance: {result['distance']}")
+#             os.remove(live_path)  # Clean up temp file
+#             flash("Face Verified Successfully!", "success")
+#             return jsonify({"match": True, "redirect": url_for("doctor_dashboard")})
+#         else:
+#             print(f"[v0] Face not matched. Distance: {result['distance']}")
+#             os.remove(live_path)  # Clean up temp file
+#             return jsonify({"match": False, "message": "Face does not match."})
 
-        result = DeepFace.verify(
-            img1_path=stored_image_path,
-            img2_path=live_path,
-            model_name="Facenet512",        # MUCH better accuracy
-            distance_metric="cosine",
-            threshold=0.40,                 # Balanced threshold
-            enforce_detection=True          # ensures real face is present
-        )
-
-        print(f"[v2] Distance: {result.get('distance')}, Verified: {result.get('verified')}")
-
-        # ACCEPT **only if DeepFace itself verifies**
-        if result["verified"] is True:
-            os.remove(live_path)
-            flash("Face Verified Successfully!", "success")
-            return jsonify({"match": True, "redirect": url_for('doctor_dashboard')})
-
-        # If not matched
-        os.remove(live_path)
-        return jsonify({
-            "match": False,
-            "message": "Face does not match. Please try again with proper lighting."
-        })
-
-
-    
-
-    except Exception as e:
-        print(f"[v1] Face detection error: {str(e)}")
-        if os.path.exists(live_path):
-            os.remove(live_path)
-        return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
-
+#     except Exception as e:
+#         print(f"[v0] Face detection error: {str(e)}")
+#         if os.path.exists(live_path):
+#             os.remove(live_path)
+#         return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
 
 
 
@@ -303,6 +287,148 @@ def admin_send_notice():
         return redirect(url_for('admin_send_notice'))
 
     return render_template('admin_send_notice.html')
+
+#=========NAHIAN M1===========
+from models.doctor_schedule_model import save_schedule, get_schedule, create_or_reset_slots, get_slots
+from datetime import datetime, timedelta
+
+def generate_slot_times(start_time_str, count=8, duration=30):
+    start = datetime.strptime(start_time_str, "%H:%M")
+    times = []
+
+    for i in range(count):
+        st = start + timedelta(minutes=i * duration)
+        et = st + timedelta(minutes=duration)
+        times.append(f"{st.strftime('%H:%M')} - {et.strftime('%H:%M')}")
+    
+    return times
+
+
+from datetime import datetime, timezone, timedelta
+
+@app.route("/update_schedule", methods=["GET", "POST"])
+def update_schedule():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+
+    d_id = session['user_id']
+
+    #LOAD SCHEDULE + SLOT DATA FIRST ----
+    schedule = get_schedule(d_id)
+    slots = get_slots(d_id)
+
+    def clean_time(t):
+        if not t:
+            return ""
+        if isinstance(t, str):
+            return t[:5]
+        try:
+            total_seconds = int(t.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            return f"{hours:02d}:{minutes:02d}"
+        except:
+            return ""
+
+    schedule['day1_starttime'] = clean_time(schedule['day1_starttime'])
+    schedule['day2_starttime'] = clean_time(schedule['day2_starttime'])
+    schedule['teleday_starttime'] = clean_time(schedule['teleday_starttime'])
+
+    day1_times = generate_slot_times(schedule['day1_starttime'], len(slots['day1_slots']))
+    day2_times = generate_slot_times(schedule['day2_starttime'], len(slots['day2_slots']))
+    teleday_times = generate_slot_times(schedule['teleday_starttime'], len(slots['teleday_slots']))
+
+    # ========== POST REQUEST ==========
+    if request.method == "POST":
+
+        # ---- CHECK DAY ----
+        bd_time = datetime.now(timezone(timedelta(hours=6)))
+        today = bd_time.strftime("%A")
+
+        if today != "Saturday":
+            flash("You can update your schedule only on Saturdays.", "error")
+            return render_template(
+                "doctor_schedule.html",
+                schedule=schedule,
+                slots=slots,
+                day1_times=day1_times,
+                day2_times=day2_times,
+                teleday_times=teleday_times
+            )
+
+        # ---- Updating schedule ----
+        day1 = request.form.get("day1")
+        day1_start = request.form.get("day1_start")
+        day2 = request.form.get("day2")
+        day2_start = request.form.get("day2_start")
+        teleday = request.form.get("teleday")
+        teleday_start = request.form.get("teleday_start")
+
+        # Check duplicate days
+        days = [day1, day2, teleday]
+        if len(days) != len(set(days)):
+            flash("Error: You cannot pick the same day more than once.", "error")
+            return redirect(url_for("update_schedule"))
+
+        # Save schedule
+        save_schedule(d_id, day1, day2, teleday, day1_start, day2_start, teleday_start)
+        create_or_reset_slots(d_id)
+
+        flash("Schedule updated successfully!", "success")
+        return redirect(url_for("update_schedule"))
+
+    # ===== GET REQUEST =====
+    return render_template(
+        "doctor_schedule.html",
+        d_id = d_id,
+        schedule=schedule,
+        slots=slots,
+        day1_times=day1_times,
+        day2_times=day2_times,
+        teleday_times=teleday_times
+    )
+
+#==========NAHIIAN M1 ends===========
+
+#==========NAHIAN M2===========
+
+from models.doctor_model import get_pending_appointments, update_appointment_status 
+from datetime import date
+
+def calculate_age(dob):
+    today = date.today()
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+@app.route('/doctor_appointments', methods=['GET', 'POST']) 
+def doctor_appointments():
+    d_id= session['user_id']
+    if 'user_id' not in session:  
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))  # Add your login route
+    
+    if request.method == 'POST':
+        app_id = request.form.get('app_id')
+        action = request.form.get('action')
+
+        update_appointment_status(app_id, d_id, action)
+
+        # --
+
+        flash('Updated appointment successfully!', 'success')
+        return redirect(url_for('doctor_appointments'))
+ # --------------------------------------------------------------------------------
+
+    # GET - Fetch pending or confirmed + unchecked appointments
+    appointments = get_pending_appointments(d_id)
+    
+    # Calculate age for each appointment
+    for appointment in appointments:
+        appointment['age'] = calculate_age(appointment['dob'])
+
+    return render_template('doctor_appointments.html', appointments=appointments, d_id=d_id)
+
+#==========NAHIIAN M2 ends===========
 
 
 #############################################

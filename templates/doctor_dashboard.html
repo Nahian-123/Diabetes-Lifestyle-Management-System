@@ -15,6 +15,16 @@
             background-color: #f8f9fa;
         }
 
+
+        .sidebar-logo-img {
+            width: 150px;          /* adjust size as needed */
+            height: 150px;         /* must be equal to width */
+            object-fit: cover;     /* crops the image to fill the circle */
+            border-radius: 50%;    /* makes it a circle */
+            border: 3px solid #007bff; /* optional: add blue border */
+        }
+
+
         .sidebar-sticky .nav-link {
             font-size: 16px;
             font-weight: bold;
@@ -27,6 +37,7 @@
             transition: all 0.3s ease;
         }
 
+
         .sidebar-sticky .nav-link:hover {
             background-color: #007bff;
             color: #fff;
@@ -34,19 +45,27 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+
         .sidebar-sticky .nav-link.active {
             background-color: #007bff;
             color: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+
         .sidebar-sticky .nav-link i {
             margin-right: 8px;
         }
 
+
         .main-content {
             /* background-color: rgba(0, 123, 255, 0.1); */
             padding: 20px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f4f6ff;
         }
 
         .white-box {
@@ -58,12 +77,27 @@
     </style>
 </head>
 
+
 <body>
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
         <nav class="col-md-2 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
+
+
+                <!-- ⭐ Logo Section START -->
+                <div class="sidebar-logo text-center my-3">
+                    <img src="{{ url_for('static', filename='DLMS logo.png') }}"
+                        class="img-fluid sidebar-logo-img"
+                        alt="Logo">
+                    <h5 class="mt-2 fw-bold">DLMS</h5>
+                </div>
+                <!-- ⭐ Logo Section END -->
+
+
+
+
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link active" href="#">
@@ -71,40 +105,43 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_dashboard') }}">
                             <i class="bi bi-person-fill"></i> Update Profile
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('update_schedule') }}">
                             <i class="bi bi-clock-fill"></i> Update Schedule
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_appointments') }}">
                             <i class="bi bi-calendar-check-fill"></i> Appointments
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_dashboard') }}">
                             <i class="bi bi-file-text-fill"></i> Write Prescription
                         </a>
                     </li>
 
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_dashboard') }}">
                             <i class="bi bi-star-fill"></i> My Reviews
                         </a>
                     </li>
 
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('static', filename='dummy.html') }}">
+                        <a class="nav-link" href="{{ url_for('index') }}">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </a>
                     </li>
                 </ul>
             </div>
         </nav>
+
 
         <!-- Page Content -->
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
@@ -113,8 +150,24 @@
                 <p class="doctor-id text-center">Your ID: {{ d_id }}</p>
             </div>
 
+
+            <!-- <div class="main-content">
+                <h4>How to Use This Dashboard</h4>
+                <ul>
+                    <li>Update your profile from the "Update Profile" section.</li>
+                    <li>Update your weekly schedule from the "Update Schedule" section.</li>
+                    <li>View and manage your appointments under "Appointments".</li>
+                    <li>Telemedicine time is 20:00-22:00. You can only have one telemedicine day per week.</li>
+                    <li>For telemedicine appointments, make a whatsapp call on the given number of the patient.</li>
+                    <li>Write patient prescriptions under "Write Prescription".</li>
+                    <li>Logout when you're done.</li>
+                </ul>
+            </div> -->
+
+
             <!-- nahian m4 -->
             <div class="main-content row">
+
 
             <!--Left: Instructions  -->
             <div class="col-md-8">
@@ -124,16 +177,18 @@
                     <li>Update your profile from the "Update Profile" section.</li>
                     <li>Update your weekly schedule from the "Update Schedule" section.</li>
                     <li>View and manage your appointments under "Appointments".</li>
-                    <li>Telemedicine time is 20:00-22:00. You can only have one telemedicine day per week.</li>
-                    <li>For telemedicine appointments, make a WhatsApp call on the given contact number of the patient.</li>
+                    <!-- <li>Telemedicine time is 20:00-22:00. You can only have one telemedicine day per week.</li> -->
+                    <!-- <li>For telemedicine appointments, make a WhatsApp call on the given contact number of the patient.</li> -->
+                    <li>Update your weekly schedule at 7 days intervals</li>
                     <li>Write patient prescriptions under "Write Prescription".</li>
                     <li>Logout when you're done.</li>
                 </ul>
                 </div>
             </div>
 
+
             <!-- Right: Notices-->
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
                 <div class="card shadow-sm">
                     <div class="card-header text-danger bg-light">
                         <h5 class="mb-0">Important Notices</h5>
@@ -149,8 +204,8 @@
                         {% else %}
                             <p class="text-muted">No new notices.</p>
                         {% endif %}
-                    </div>
-                </div>
+                    </div> -->
+                <!-- </div> -->
         </main>
     </div>
 </div>
