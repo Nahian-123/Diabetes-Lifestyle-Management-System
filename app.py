@@ -137,6 +137,17 @@ def verify_face_page():
     return render_template("verify.html")
 
 
+def get_doctor_image_path(doctor_id):
+    UPLOAD_FOLDER = "uploads/doctors/"
+    valid_ext = ["jpeg", "jpg", "png"]
+
+    for ext in valid_ext:
+        path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.{ext}")
+        if os.path.exists(path):
+            return path
+    
+    return None
+
 
 ############################################################
 # >>> NEW: FACE MATCHING API ENDPOINT <<<
@@ -155,11 +166,11 @@ def verify_face_api():
     data = request.json
     live_image = data["live_image"]
 
-    stored_image_path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.jpeg")
+    stored_image_path = get_doctor_image_path(doctor_id)
 
-    if not os.path.exists(stored_image_path):
-        print(f"[v0] ERROR: Doctor image not found at {stored_image_path}")
-        return jsonify({"match": False, "message": f"Doctor photo not found. Expected at: {stored_image_path}"})
+    if stored_image_path is None:
+        return jsonify({"match": False, "message": "Doctor photo not found in JPG/PNG format."})
+
 
     # Convert base64 → actual file
     live_image = live_image.replace("data:image/jpeg;base64,", "")
@@ -206,6 +217,7 @@ def verify_face_api():
         if os.path.exists(live_path):
             os.remove(live_path)
         return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
+
 
 
 
