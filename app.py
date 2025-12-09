@@ -172,35 +172,40 @@ def verify_face_api():
     # Perform face verification
     # Perform face verification (VERY EASY MODE)
     try:
-        print(f"[v1] Comparing {stored_image_path} with {live_path}")
+        print(f"[v2] Comparing {stored_image_path} with {live_path}")
 
         result = DeepFace.verify(
             img1_path=stored_image_path,
             img2_path=live_path,
-            model_name="VGG-Face",
+            model_name="Facenet512",        # MUCH better accuracy
             distance_metric="cosine",
-            threshold=0.60,              # ← VERY EASY MATCHING
-            enforce_detection=False      # ← do not fail if face is slightly unclear
+            threshold=0.40,                 # Balanced threshold
+            enforce_detection=True          # ensures real face is present
         )
 
-        print(f"[v1] Distance: {result.get('distance')} Verified: {result.get('verified')}")
+        print(f"[v2] Distance: {result.get('distance')}, Verified: {result.get('verified')}")
 
-        # ACCEPT if verified OR distance is reasonably close
-        if result["verified"] or result.get("distance", 1) < 1.0:
+        # ACCEPT **only if DeepFace itself verifies**
+        if result["verified"] is True:
             os.remove(live_path)
             flash("Face Verified Successfully!", "success")
             return jsonify({"match": True, "redirect": url_for('doctor_dashboard')})
 
         # If not matched
         os.remove(live_path)
-        return jsonify({"match": False, "message": "Face does not match (but detection worked)."})
+        return jsonify({
+            "match": False,
+            "message": "Face does not match. Please try again with proper lighting."
+        })
+
+
+    
 
     except Exception as e:
         print(f"[v1] Face detection error: {str(e)}")
         if os.path.exists(live_path):
             os.remove(live_path)
         return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
-
 
 
 
