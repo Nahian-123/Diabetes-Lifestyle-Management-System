@@ -56,6 +56,12 @@ def index():
 #############################################
 # REGISTER ROUTE  (UNCHANGED)
 #############################################
+from models.user_model import login_user, register_user, validate_email  # Removed get_doctor_real_email import
+
+
+#############################################
+# REGISTER ROUTE  - SIMPLIFIED (no extra field needed)
+#############################################
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -86,11 +92,11 @@ def register():
             flash(result['message'], 'error')
             return redirect(url_for('register'))
     
-    return render_template('register.html')   ### Made a change
+    return render_template('register.html')
 
 
 #############################################
-# LOGIN ROUTE — >>> UPDATED <<<
+# LOGIN ROUTE - STORES real_email FOR GOOGLE
 #############################################
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -99,7 +105,6 @@ def login():
         email = request.form['email']
         password = request.form['password']
         
-        
         user_data = login_user(email, password)
         
         if user_data:
@@ -107,14 +112,15 @@ def login():
             session['email'] = user_data['email']
             session['role'] = user_data['role']
             session['name'] = user_data['name']
+            
+            if user_data.get('real_email'):
+                session['real_email'] = user_data['real_email']
 
             flash('Login successful!', 'success')
 
-            # >>> NEW LOGIC: If doctor logs in → Send to face verification
             if session['role'] == 'doctor':
-                return redirect(url_for('doctor_dashboard'))   ## I changed
+                return redirect(url_for('doctor_dashboard'))
 
-            # Normal login flow for others
             if session['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
             elif session['role'] == 'patient':
