@@ -43,12 +43,13 @@ def login_user(email, password):
                     'name': user.get('name', 'Admin')
                 }
         elif role == 'doctor':
-            cursor.execute('SELECT * FROM doctor WHERE email = %s AND password = %s', (email, password))
+            cursor.execute('SELECT * FROM doctor WHERE domain_email = %s AND password = %s', (email, password))
             user = cursor.fetchone()
             if user:
                 user_data = {
                     'user_id': user['d_id'],
-                    'email': user['email'],
+                    'email': user['domain_email'],  # Domain email for session
+                    'real_email': user['email'],    # Real email for Google integrations
                     'role': 'doctor',
                     'name': user['name']
                 }
@@ -76,32 +77,38 @@ def register_user(username, email, password, role, doctor_data=None):
     result = {'success': False, 'message': ''}
     
     try:
-        # Check if email already exists in the appropriate table
         if role == 'doctor':
+            local_part = email.split('@')[0]
+            domain_email = local_part + DOCTOR_EMAIL_DOMAIN
+            
+            # Check if real email already exists
             cursor.execute('SELECT * FROM doctor WHERE email = %s', (email,))
             if cursor.fetchone():
                 result['message'] = 'Email already registered as a doctor'
                 return result
             
-            if role == "doctor":
-                
-                cursor.execute(
-                    '''INSERT INTO doctor 
-                    (name, email, password, designation, verified) 
-                    VALUES (%s, %s, %s, %s, %s)''',
-                    (username, email, password, 'General Physician', 0)
-                )
-                conn.commit()
-                result['success'] = True
-                result['message'] = 'Registration successful! You are a BMDC verified doctor. Please wait for admin approval before logging in.'
+            # Check if domain_email already exists
+            cursor.execute('SELECT * FROM doctor WHERE domain_email = %s', (domain_email,))
+            if cursor.fetchone():
+                result['message'] = 'A doctor with this username already exists'
+                return result
             
-        elif role == 'Patient':
+            cursor.execute(
+                '''INSERT INTO doctor 
+                (name, email, domain_email, password, designation, verified) 
+                VALUES (%s, %s, %s, %s, %s, %s)''',
+                (username, email, domain_email, password, 'General Physician', 0)
+            )
+            conn.commit()
+            result['success'] = True
+            result['message'] = f'Registration successful! Your login email is: {domain_email}. Please wait for admin approval before logging in.'
+            
+        elif role == 'patient':
             cursor.execute('SELECT * FROM patient WHERE email = %s', (email,))
             if cursor.fetchone():
                 result['message'] = 'Email already registered as a patient'
                 return result
             
-            # Insert new patient
             cursor.execute(
                 'INSERT INTO patient (name, email, password) VALUES (%s, %s, %s)',
                 (username, email, password)
