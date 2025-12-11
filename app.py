@@ -6,7 +6,7 @@ import os
 import base64
 
 # DeepFace for verification
-from deepface import DeepFace
+#from deepface import DeepFace
 
 # Import models
 from models.user_model import login_user, register_user, validate_email
@@ -53,10 +53,7 @@ def index():
     return redirect(url_for('login'))
 
 
-#############################################
-# REGISTER ROUTE  (UNCHANGED)
-#############################################
-
+from models.user_model import login_user, register_user, validate_email  # Removed get_doctor_real_email import
 
 
 #############################################
@@ -126,9 +123,10 @@ def login():
             elif session['role'] == 'patient':
                 return redirect(url_for('patient_dashboard'))
         
-        flash('Invalid email, password, or role selection', 'error')
+        flash('Invalid email or password', 'error')
 
     return render_template('login.html')
+
 
 # ############################################################
 # # >>> NEW: FACE VERIFICATION PAGE <<<
