@@ -56,7 +56,7 @@ def index():
 #############################################
 # REGISTER ROUTE  (UNCHANGED)
 #############################################
-from models.user_model import login_user, register_user, validate_email  # Removed get_doctor_real_email import
+
 
 
 #############################################
