@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Payment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='payment_card.css') }}" rel="stylesheet">
+  
+</head>
+<body>
+
+<div class="payment-wrapper">
+    <div class="card-form-container">
+        <div class="form-header">
+            <h3>Payment Details</h3>
+            <p>Complete your appointment booking</p>
+        </div>
+
+        <div class="card-brands">
+            <i class="fab fa-cc-visa brand-icon" id="brand-visa"></i>
+            <i class="fab fa-cc-mastercard brand-icon" id="brand-mastercard"></i>
+            <i class="fab fa-cc-amex brand-icon" id="brand-amex"></i>
+            <i class="fab fa-cc-discover brand-icon" id="brand-discover"></i>
+        </div>
+        {% if error %}
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <div>{{ error }}</div>
+        </div>
+        {% endif %}
+
+<form id="paymentForm" method="POST" action="{{ url_for('save_card_details') }}">
+    ...
+        <form id="paymentForm" method="POST" action="{{ url_for('save_card_details') }}">
+            
+            <div class="mb-4">
+                <label for="cardNumber" class="form-label">CARD NUMBER</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                    <input type="text" class="form-control" id="cardNumber" name="card_number" 
+                           placeholder="0000 0000 0000 0000" maxlength="19" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-4">
+                    <label for="expirationDate" class="form-label">EXPIRY</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                        <input type="text" class="form-control" id="expirationDate" name="expiration_date" 
+                               placeholder="MM/YY" maxlength="5" required>
+                    </div>
+                </div>
+
+                <div class="col-6 mb-4">
+                    <label for="cvv" class="form-label">CVV</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="cvv" name="cvv" 
+                               placeholder="123" maxlength="4" required>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="p_id" value="{{ p_id }}">
+            <input type="hidden" name="app_id" value="{{ app_id }}">
+            <button type="submit" class="btn btn-pay">
+                Pay <span id="payAmount"></span> & Save Card
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const cardInput = document.getElementById('cardNumber');
+    const expiryInput = document.getElementById('expirationDate');
+    
+    // Brand Icons
+    const brands = {
+        visa: document.getElementById('brand-visa'),
+        mastercard: document.getElementById('brand-mastercard'),
+        amex: document.getElementById('brand-amex'),
+        discover: document.getElementById('brand-discover')
+    };
+
+    // 1. Format Card Number & Detect Brand
+    cardInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        let formattedValue = '';
+
+        // Detect Brand based on prefix
+        resetBrands();
+        if (value.startsWith('4')) {
+            brands.visa.classList.add('active');
+        } else if (/^5[1-5]/.test(value)) {
+            brands.mastercard.classList.add('active');
+        } else if (/^3[47]/.test(value)) {
+            brands.amex.classList.add('active');
+        } else if (value.startsWith('6')) {
+            brands.discover.classList.add('active');
+        }
+
+        // Add spacing every 4 digits
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formattedValue += ' ';
+            }
+            formattedValue += value[i];
+        }
+        e.target.value = formattedValue;
+    });
+
+    function resetBrands() {
+        for (let key in brands) {
+            brands[key].classList.remove('active');
+        }
+    }
+
+    // 2. Format Expiry Date (MM/YY)
+    expiryInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+        
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+</script>
+
+</body>
+</html>

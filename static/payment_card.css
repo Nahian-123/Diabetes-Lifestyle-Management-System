@@ -1,0 +1,123 @@
+/* Container for the whole payment section by angshu */
+
+.payment-wrapper {
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+/* The Card Form Container */
+.card-form-container {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Header Styling */
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.form-header h3 {
+    font-weight: 700;
+    color: #333;
+}
+.form-header p {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Brand Icons Container */
+.card-brands {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.brand-icon {
+    font-size: 2rem;
+    color: #e0e0e0; /* Inactive color */
+    transition: all 0.3s ease;
+}
+
+/* Active State for Brand Icons */
+.brand-icon.active {
+    color: #007bff; /* Active Blue */
+    transform: scale(1.1);
+    filter: drop-shadow(0 2px 4px rgba(0,123,255,0.3));
+}
+/* Specific Brand Colors when active */
+.brand-icon.fa-cc-visa.active { color: #1a1f71; }
+.brand-icon.fa-cc-mastercard.active { color: #eb001b; }
+.brand-icon.fa-cc-amex.active { color: #006fcf; }
+.brand-icon.fa-cc-discover.active { color: #ff6000; }
+
+/* Form Controls */
+.form-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.input-group-text {
+    background-color: #fff;
+    border-right: none;
+    color: #888;
+}
+
+.form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    padding: 12px;
+    font-size: 1rem;
+    box-shadow: none;
+    border-color: #ced4da;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: none;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+/* Special fix for the input group icon border */
+.input-group .input-group-text {
+    border-radius: 8px 0 0 8px;
+    border: 1px solid #ced4da;
+    border-right: none;
+}
+
+/* Pay Button */
+.btn-pay {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    width: 100%;
+    margin-top: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-pay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+    color: white;
+}
