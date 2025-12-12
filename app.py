@@ -21,7 +21,16 @@ from models.doctor_model import get_doctor_name, get_doctor_notices
 from models.admin_model import insert_notice,get_dashboard_stats
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
+# For Google Calendar API
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+import os
 
+# Google Calendar API Setup
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
+CLIENT_SECRETS_FILE = "client_secret.json"
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 app = Flask(__name__, template_folder="templates")
 app.secret_key = 'your_secret_key_here'
