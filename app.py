@@ -394,6 +394,7 @@ def admin_send_notice():
 #=========NAHIAN M1===========
 
 from models.doctor_schedule_model import save_schedule, get_schedule, create_or_reset_slots, get_slots
+from datetime import datetime, timezone, timedelta 
 
 def generate_slot_times(start_time_str, count=8, duration=30):
     start = datetime.strptime(start_time_str, "%H:%M")
@@ -455,7 +456,7 @@ def update_schedule():
                 slots=slots,
                 day1_times=day1_times,
                 day2_times=day2_times,
-                teleday_times=teleday_times
+                teleday_times=teleday_times, d_id=d_id
             )
 
         # ---- Updating schedule ----
@@ -486,7 +487,7 @@ def update_schedule():
         slots=slots,
         day1_times=day1_times,
         day2_times=day2_times,
-        teleday_times=teleday_times
+        teleday_times=teleday_times, d_id=d_id
     )
 
 #==========NAHIIAN M1 ends===========
