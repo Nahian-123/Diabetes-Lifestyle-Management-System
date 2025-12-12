@@ -688,4 +688,82 @@ def insert_appointment(d_id, p_id, date, time, appointment_type):
     conn.close()
     return True
 #============ LABIBA M2 ends =====================
+def get_patient_appointments_with_details(p_id):
+    """
+    Fetch all appointments for a patient with doctor details and Zoom meeting info.
+    Returns appointments ordered by date (newest first).
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    sql = """
+        SELECT 
+            a.app_id,
+            a.d_id,
+            a.p_id,
+            a.date,
+            a.time,
+            a.appointment_type,
+            a.confirmation,
+            a.checked,
+            a.zoom_meeting_link,
+            a.zoom_meeting_id,
+            a.zoom_password,
+            d.name as doctor_name,
+            d.designation as doctor_designation,
+            d.phone as doctor_phone,
+            d.email as doctor_email
+        FROM appointment a
+        JOIN doctor d ON a.d_id = d.d_id
+        WHERE a.p_id = %s
+        ORDER BY a.date DESC, a.time DESC
+    """
+    
+    cursor.execute(sql, (p_id,))
+    appointments = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return appointments
+def get_upcoming_patient_appointments(p_id):
+    """
+    Fetch only future and today's appointments for a patient.
+    Returns appointments ordered by date (soonest first).
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    from datetime import date
+    today = date.today()
+    
+    sql = """
+        SELECT 
+            a.app_id,
+            a.d_id,
+            a.p_id,
+            a.date,
+            a.time,
+            a.appointment_type,
+            a.confirmation,
+            a.zoom_meeting_link,
+            a.zoom_meeting_id,
+            a.zoom_password,
+            d.name as doctor_name,
+            d.designation as doctor_designation
+        FROM appointment a
+        JOIN doctor d ON a.d_id = d.d_id
+        WHERE a.p_id = %s 
+          AND a.date >= %s
+          AND a.confirmation != 2
+        ORDER BY a.date ASC, a.time ASC
+    """
+    
+    cursor.execute(sql, (p_id, today))
+    appointments = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return appointments
 

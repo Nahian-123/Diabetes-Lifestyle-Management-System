@@ -1,9 +1,13 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import mysql.connector
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 from functools import wraps
 import os
 import base64
+import requests  # Added for Zoom API calls
+import jwt  # Added for JWT token generation
+import time
+import json
 
 # # DeepFace for verification
 # from deepface import DeepFace
@@ -16,6 +20,16 @@ from models.user_model import login_user, register_user, validate_email
 from models.doctor_model import get_doctor_name, get_doctor_notices 
 from models.admin_model import insert_notice,get_dashboard_stats
 
+# For Google Calendar API
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+import os
+
+# Google Calendar API Setup
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
+CLIENT_SECRETS_FILE = "client_secret.json"
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 app = Flask(__name__, template_folder="templates")
@@ -94,8 +108,6 @@ def register():
 
 
 
-
-
 #############################################
 # LOGIN ROUTE - STORES real_email FOR GOOGLE
 #############################################
@@ -109,7 +121,6 @@ def login():
 
        
 #=======
-        
 
         user_data = login_user(email, password)
        
@@ -123,7 +134,7 @@ def login():
                 session['real_email'] = user_data['real_email']
 
 
-            flash('Login successful!', 'success')
+            flash('Login successful!', 'success')  
 
 
             if session['role'] == 'doctor':
@@ -135,14 +146,13 @@ def login():
             elif session['role'] == 'patient':
                 return redirect(url_for('patient_dashboard'))
        
-        flash('Invalid email or password', 'error')
+        flash('Invalid email or password', 'error')  
 
 
     return render_template('login.html')
 
-
 # ############################################################
-# # >>> NEW: FACE VERIFICATION PAGE <<<
+# # >>> NEW: FACE VERIFICATION PAGE <<< 
 # ############################################################
 # @app.route('/verify')
 # @login_required
@@ -150,7 +160,6 @@ def login():
 #     if session.get('role') != 'doctor':
 #         return redirect(url_for('login'))
 #     return render_template("verify.html")
-
 
 # def get_doctor_image_path(doctor_id):
 #     UPLOAD_FOLDER = "uploads/doctors/"
@@ -248,8 +257,89 @@ def login():
 
 #     return render_template('patient_dashboard.html', name=patient['name'], p_id=p_id, updated_on=patient['updated_on'], glucose_data=glucose_data, notifications=notifications, medication_message=medication_message, notices=notices)
 
+#############################################
+# ZOOM INTEGRATION CONFIGURATION
+#############################################
+ZOOM_ACCOUNT_ID = os.getenv('ZOOM_ACCOUNT_ID', 'your_zoom_account_id')
+ZOOM_CLIENT_ID = os.getenv('ZOOM_CLIENT_ID', 'your_zoom_client_id')
+ZOOM_CLIENT_SECRET = os.getenv('ZOOM_CLIENT_SECRET', 'your_zoom_client_secret')
 
+def get_zoom_access_token():
+    """Generate Zoom OAuth access token using Server-to-Server OAuth"""
+    token_url = f"https://zoom.us/oauth/token?grant_type=account_credentials&account_id={ZOOM_ACCOUNT_ID}"
+    
+    auth_header = base64.b64encode(f"{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}".encode()).decode()
+    headers = {
+        'Authorization': f'Basic {auth_header}',
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    
+    try:
+        response = requests.post(token_url, headers=headers)
+        response.raise_for_status()
+        return response.json().get('access_token')
+    except Exception as e:
+        print(f"[v0] Error getting Zoom access token: {str(e)}")
+        return None
 
+def create_zoom_meeting(topic, start_time, duration=30):
+    """
+    Create a Zoom meeting
+    
+    Args:
+        topic: Meeting topic/title
+        start_time: Meeting start time (datetime object)
+        duration: Meeting duration in minutes (default 30)
+    
+    Returns:
+        dict with meeting details (join_url, meeting_id, password) or None if failed
+    """
+    access_token = get_zoom_access_token()
+    
+    if not access_token:
+        print("[v0] Failed to get Zoom access token")
+        return None
+    
+    # Zoom API endpoint to create a meeting (using 'me' as user_id for the account owner)
+    create_meeting_url = "https://api.zoom.us/v2/users/me/meetings"
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    meeting_data = {
+        "topic": topic,
+        "type": 2,  # Scheduled meeting
+        "start_time": start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": duration,
+        "timezone": "Asia/Dhaka",
+        "settings": {
+            "host_video": True,
+            "participant_video": True,
+            "join_before_host": False,
+            "mute_upon_entry": True,
+            "waiting_room": True,
+            "audio": "both",
+            "auto_recording": "none"
+        }
+    }
+    
+    try:
+        response = requests.post(create_meeting_url, json=meeting_data, headers=headers)
+        response.raise_for_status()
+        meeting_info = response.json()
+        
+        return {
+            'join_url': meeting_info.get('join_url'),
+            'meeting_id': meeting_info.get('id'),
+            'password': meeting_info.get('password', '')
+        }
+    except Exception as e:
+        print(f"[v0] Error creating Zoom meeting: {str(e)}")
+        return None
+
+#############################################
 
 @app.route('/admin')
 @login_required
@@ -264,9 +354,6 @@ def admin_dashboard():
                           total_patients=stats['total_patients'],
                           timestamp=stats['timestamp'])
 
-
-
-
 @app.route('/doctor_dashboard', endpoint='doctor_dashboard')
 def doctor_dashboard():
     d_id= session['user_id']
@@ -276,7 +363,6 @@ def doctor_dashboard():
     name = get_doctor_name(d_id)
     notices = get_doctor_notices(d_id)
     return render_template('doctor_dashboard.html', name=name, d_id=d_id, notices=notices)
-
 
 @app.route('/admin_send_notice', methods=['GET', 'POST'])
 def admin_send_notice():
@@ -306,8 +392,8 @@ def admin_send_notice():
     return render_template('admin_send_notice.html')
 
 #=========NAHIAN M1===========
+
 from models.doctor_schedule_model import save_schedule, get_schedule, create_or_reset_slots, get_slots
-from datetime import datetime, timedelta
 
 def generate_slot_times(start_time_str, count=8, duration=30):
     start = datetime.strptime(start_time_str, "%H:%M")
@@ -319,9 +405,6 @@ def generate_slot_times(start_time_str, count=8, duration=30):
         times.append(f"{st.strftime('%H:%M')} - {et.strftime('%H:%M')}")
     
     return times
-
-
-from datetime import datetime, timezone, timedelta
 
 @app.route("/update_schedule", methods=["GET", "POST"])
 def update_schedule():
@@ -352,11 +435,12 @@ def update_schedule():
     schedule['day2_starttime'] = clean_time(schedule['day2_starttime'])
     schedule['teleday_starttime'] = clean_time(schedule['teleday_starttime'])
 
-    day1_times = generate_slot_times(schedule['day1_starttime'], len(slots['day1_slots']))
-    day2_times = generate_slot_times(schedule['day2_starttime'], len(slots['day2_slots']))
-    teleday_times = generate_slot_times(schedule['teleday_starttime'], len(slots['teleday_slots']))
+    day1_times = generate_slot_times(schedule['day1_starttime'])
+    day2_times = generate_slot_times(schedule['day2_starttime'])
+    teleday_times = generate_slot_times(schedule['teleday_starttime'])
 
     # ========== POST REQUEST ==========
+
     if request.method == "POST":
 
         # ---- CHECK DAY ----
@@ -398,7 +482,6 @@ def update_schedule():
     # ===== GET REQUEST =====
     return render_template(
         "doctor_schedule.html",
-        d_id = d_id,
         schedule=schedule,
         slots=slots,
         day1_times=day1_times,
@@ -408,7 +491,7 @@ def update_schedule():
 
 #==========NAHIIAN M1 ends===========
 
-#==========NAHIAN M2===========
+#==========NAHIIAN M2 starts===========
 
 from models.doctor_model import get_pending_appointments, update_appointment_status 
 from datetime import date
@@ -422,7 +505,7 @@ def doctor_appointments():
     d_id= session['user_id']
     if 'user_id' not in session:  
         flash("Session timed out. Please login again.")
-        return redirect(url_for('login'))  # Add your login route
+        return redirect(url_for('login'))
     
     if request.method == 'POST':
         app_id = request.form.get('app_id')
@@ -430,16 +513,51 @@ def doctor_appointments():
 
         update_appointment_status(app_id, d_id, action)
 
-        # --
-        # ========= LABIBA M2 GOOGLE CALENDER API =================
-        # if confirmed → add event to patient Google Calendar
         if action == "Confirm":
-            create_google_calendar_event(app_id)
-        #==========================================================
+            # Get appointment details
+            from models.appointment_model import get_appointment_by_id
+            appointment = get_appointment_by_id(app_id)
+            
+            if appointment and appointment.get('appointment_type') == 'telemedicine':
+                # Create Zoom meeting
+                appointment_datetime = datetime.combine(
+                    appointment['date'],
+                    datetime.strptime(appointment['time'], "%I:%M %p").time()
+                )
+                
+                meeting_topic = f"Telemedicine Appointment - Dr. {get_doctor_name(d_id)}"
+                zoom_meeting = create_zoom_meeting(meeting_topic, appointment_datetime, duration=30)
+                
+                if zoom_meeting:
+                    # Store Zoom meeting link in database with correct table name
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE appointment 
+                        SET zoom_meeting_link = %s, zoom_meeting_id = %s, zoom_password = %s
+                        WHERE app_id = %s
+                    """, (zoom_meeting['join_url'], zoom_meeting['meeting_id'], zoom_meeting['password'], app_id))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    
+                    flash('Appointment confirmed and Zoom meeting created!', 'success')
+                else:
+                    flash('Appointment confirmed but Zoom meeting creation failed. Please create manually.', 'warning')
+            else:
+                flash('Appointment confirmed!', 'success')
+            
+            # Google Calendar integration (if exists)
+            try:
+                create_google_calendar_event(app_id)
+            except Exception as e:
+                print(f"Google Calendar integration failed: {e}")
+                pass
 
-        flash('Updated appointment successfully!', 'success')
+        else:
+            flash('Updated appointment successfully!', 'success')
+            
         return redirect(url_for('doctor_appointments'))
- # --------------------------------------------------------------------------------
 
     # GET - Fetch pending or confirmed + unchecked appointments
     appointments = get_pending_appointments(d_id)
@@ -452,9 +570,8 @@ def doctor_appointments():
 
 #==========NAHIIAN M2 ends===========
 
-
-
 #==========LABIBA M1 starts=====================================================================
+
 from models.doctor_model import insert_prescription
 from models.patient_model import get_patient_name_glucose_info_update, get_latest_SMBG_routine
 
@@ -483,15 +600,11 @@ def doctor_prescriptions():
 
     return render_template('doctor_prescriptions.html',d_id=d_id)
 
-
-
-
 @app.route('/patient_dashboard', endpoint='patient_dashboard')
 def patient_dashboard():
     if 'user_id' not in session:
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
-
 
     p_id = session['user_id']
     patient = get_patient_name_glucose_info_update(p_id)
@@ -526,8 +639,10 @@ def patient_dashboard():
         smbg_routine_details = {"status": "not_prescribed"}
 
 
- 
-
+  # Added Zoom meeting link display on patient dashboard
+    zoom_meeting_link = patient.get('zoom_meeting_link')
+    zoom_meeting_id = patient.get('zoom_meeting_id')
+    zoom_password = patient.get('zoom_password')
 
     return render_template(
         'patient_dashboard.html',
@@ -539,22 +654,24 @@ def patient_dashboard():
         smbg_status=smbg_routine_details["status"],
         weekly_smbg=smbg_routine_details.get("weekly_smbg"),
         doctor_name=smbg_routine_details.get("doctor_name"),
-        smbg_date=smbg_routine_details.get("date")
+        smbg_date=smbg_routine_details.get("date"),
+        zoom_meeting_link=zoom_meeting_link,
+        zoom_meeting_id=zoom_meeting_id,
+        zoom_password=zoom_password
         )  
 
 #==========LABIBA M1 ends=====================================================================
 
-
 #==========LABIBA M2 starts===================================================================
-from models.patient_model import filter_doctor_by_area, get_verified_doctor_details, get_verified_doctor_details, get_distinct_area
+
+from models.patient_model import filter_doctor_by_area, get_verified_doctor_details, get_distinct_area
 from models.patient_model import get_patient_details, update_patient_details
 
 from models.patient_model import get_doctor_weekly_schedule, get_doctor_slots, get_patient_required_fields, check_appointment_next_week, update_doctor_slot, insert_appointment
 from models.appointment_model import get_appointment_by_id
 
+from models.patient_model import get_upcoming_patient_appointments,get_patient_appointments_with_details
 from models.doctor_model import get_doctor_by_id
-from datetime import time, timedelta
-import json
 
 
 @app.route('/update_patient_profile', methods=['GET', 'POST'])
@@ -621,8 +738,6 @@ def verified_doctor_list():
     
     distinct_area_lst = get_distinct_area()
     return render_template('verified_doctor_list.html', doctor=doctor, areas=distinct_area_lst)
-
-
 
 @app.route('/request_appointment', methods=['GET', 'POST'])
 def request_appointment():
@@ -720,7 +835,6 @@ def request_appointment():
         weekly_data=weekly_data
     )
 
-
 @app.route('/request_appointment_progress', methods=['POST'])
 def request_appointment_progress():
     if 'user_id' not in session:
@@ -752,27 +866,30 @@ def request_appointment_progress():
     appointment_day = convert_date_to_weekday(appointment_date)
 
     # Retrieve slot time
-    weekly_data = get_doctor_weekly_schedule(d_id)
+    # Note: This should ideally fetch the same schedule data as in request_appointment to ensure consistency.
+    # For simplicity, we'll re-fetch; in a production system, consider passing this data or using a shared service.
+    schedule = get_doctor_weekly_schedule(d_id)
     slot_data = get_doctor_slots(d_id)
 
+
     # Determine day_num (“day1”, “day2”, “teleday”)
-    if appointment_day == weekly_data["day1"]:
+    if appointment_day == schedule["day1"]:
         day_num = "day1"
-    elif appointment_day == weekly_data["day2"]:
+    elif appointment_day == schedule["day2"]:
         day_num = "day2"
-    elif appointment_day == weekly_data["teleday"]:
+    elif appointment_day == schedule["teleday"]:
         day_num = "teleday"
     else:
-        flash("Error: Invalid schedule day selected.")
+        flash("Error: Invalid schedule day selected. Please try again.")
         return redirect(url_for('request_appointment', d_id=d_id))
 
     slot_column = f"{day_num}slot{slot_number}"
 
     # Generate slot_time again (same logic as request_appointment)
     # Fetch starting time
-    start_time = normalize_time(weekly_data[f"{day_num}_starttime"])
-    slot_date = datetime.strptime(appointment_date, "%Y-%m-%d")
-    start_dt = datetime.combine(slot_date, start_time)
+    start_time = normalize_time(schedule[f"{day_num}_starttime"])
+    slot_date_obj = datetime.strptime(appointment_date, "%Y-%m-%d")
+    start_dt = datetime.combine(slot_date_obj, start_time)
     slot_dt = start_dt + timedelta(minutes=(int(slot_number) - 1) * 30)
     slot_time = slot_dt.strftime("%I:%M %p")
 
@@ -781,33 +898,33 @@ def request_appointment_progress():
     # 1. Profile check
     patient_fields = get_patient_required_fields(p_id)
     required_fields = [
-        'name', 'dob', 'weight', 'gender',
+        'name', 'dob', 'phone', 'weight', 'gender',
         'gl_b_breakfast', 'gl_a_breakfast',
         'gl_b_lunch', 'gl_b_dinner'
     ]
-
-    if not all(patient_fields.get(f) not in (None, '', 0) for f in required_fields):
-        flash("Error: Please complete your profile first.")
-        return redirect(url_for('request_appointment', d_id=d_id))
+    # Check if all required fields are not None or empty string
+    if  all(patient_fields.get(f)  in (None, '', 'None') for f in required_fields):
+        flash("Error: Please complete your profile details (dob, phone, weight, gender, glucose levels) before booking an appointment.")
+        return redirect(url_for('update_patient_profile')) # Redirect to profile update
 
     # 2. Followup date check
     today = datetime.now().date()
-    patient = get_patient_details(p_id)
-    followup = patient["followup_date"]
+    patient_details = get_patient_details(p_id) # Fetch again to get fresh followup_date
+    followup = patient_details.get("followup_date")
 
     if followup and today < followup:
-        flash(f"Error: Your follow-up date ({followup}) has not arrived yet.")
+        flash(f"Error: Your next follow-up is scheduled for {followup}. You cannot book a new appointment before this date.")
         return redirect(url_for('request_appointment', d_id=d_id))
 
     # 3. Next 7 days rule
     next_7 = today + timedelta(days=7)
     if check_appointment_next_week(p_id, today, next_7):
-        flash("Error: You already have an appointment within the next 7 days.")
+        flash("Error: You already have an appointment booked within the next 7 days. Please check your existing appointments.")
         return redirect(url_for('request_appointment', d_id=d_id))
 
     # 4. Slot availability
     if slot_data.get(slot_column) == 1:
-        flash("Error: Slot already booked. Please select another slot.")
+        flash("Error: This slot is already booked. Please select another available slot.")
         return redirect(url_for('request_appointment', d_id=d_id))
 
     # Mark slot booked
@@ -821,7 +938,6 @@ def request_appointment_progress():
     return render_template("request_appointment_progress.html",
                            success=success,
                            redirect_url=url_for('patient_dashboard'))
-
 
 # Helper func for M2 LABIBA
 def normalize_time(value):
@@ -841,19 +957,7 @@ def convert_date_to_day_key(date_str):
     weekday = datetime.datetime.strptime(date_str, "%Y-%m-%d").weekday()
     return f"day{weekday+1}"  # Monday=1 ... Sunday=7
 
-
-
 # GOOGLE CALENDER API =================================
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from datetime import datetime, timedelta
-import os
-
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
-
-CLIENT_SECRETS_FILE = "client_secret.json"
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 @app.route("/authorize")
 def authorize():
@@ -923,19 +1027,20 @@ def create_google_calendar_event(app_id):
     
     # 2. Fetch appointment details
     # Fetch appointment + patient + doctor details from DB
+    from models.appointment_model import get_appointment_by_id
     appointment = get_appointment_by_id(app_id)
     patient = get_patient_details(appointment["p_id"])
     doctor = get_doctor_by_id(appointment["d_id"])
     
     # 3. Build start/end datetime
     # Combine date + time → datetime
-    date = str(appointment["date"])       # YYYY-MM-DD
-    time = str(appointment["time"])       # HH:MM AM/PM
+    date_str = str(appointment["date"])       # YYYY-MM-DD
+    time_str = str(appointment["time"])       # HH:MM AM/PM
 
     # Build ISO datetime
     # Convert "YYYY-MM-DD" + "HH:MM AM/PM" → datetime object
-    start_dt = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
-    end_dt = start_dt + timedelta(minutes=30)
+    start_dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %I:%M %p")
+    end_dt = start_dt + timedelta(minutes=30) # Assuming 30 min appointment duration
 
     # Create Google Calendar–ready ISO strings
     start_iso = start_dt.isoformat()
@@ -946,11 +1051,12 @@ def create_google_calendar_event(app_id):
 
     # Build event
     event = {
-        "summary": f"DLMS Appointment Day",
+        "summary": f"DLMS Appointment with Dr. {doctor['name']}",
         "description": (
             f"Appointment ID: {appointment['app_id']}\n"
             f"Appointment Type: {appointment['appointment_type']}\n"
-            f"Doctor: {doctor['name']}"
+            f"Patient: {patient['name']}"
+            f"\nBooked via DLMS"
         ),
         "start": {
             "dateTime": start_iso,
@@ -967,37 +1073,188 @@ def create_google_calendar_event(app_id):
     }
     
     # 5. Create event in doctor's Google Calendar
-    created_event = service.events().insert(
-        calendarId="primary",
-        body=event,
-        sendUpdates="all"   # sends email + calendar invite to patient
-    ).execute()
-
-
-    print("Event created:", created_event.get("htmlLink"))
-    return True
+    try:
+        created_event = service.events().insert(
+            calendarId="primary",
+            body=event,
+            sendUpdates="all"   # sends email + calendar invite to patient
+        ).execute()
+        print("Event created:", created_event.get("htmlLink"))
+        return True
+    except Exception as e:
+        print(f"Error creating Google Calendar event: {e}")
+        return False
 
 #==========LABIBA M2 ends=====================================================================
 
+@app.route('/join_zoom/<int:app_id>')
+@login_required
+def join_zoom(app_id):
+    """Join a Zoom meeting for a specific appointment"""
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    
+    # Fetch appointment details
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT a.*, p.name as patient_name, d.name as doctor_name,
+               a.zoom_meeting_link, a.zoom_meeting_id, a.zoom_password
+        FROM appointment a
+        JOIN patient p ON a.p_id = p.p_id
+        JOIN doctor d ON a.d_id = d.d_id
+        WHERE a.app_id = %s
+    """, (app_id,))
+    appointment = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if not appointment:
+        flash('Appointment not found', 'error')
+        return redirect(url_for('patient_dashboard' if user_role == 'patient' else 'doctor_dashboard'))
+    
+    # Check if user has access to this appointment
+    if user_role == 'patient' and appointment['p_id'] != user_id:
+        flash('You do not have access to this appointment', 'error')
+        return redirect(url_for('patient_dashboard'))
+    elif user_role == 'doctor' and appointment['d_id'] != user_id:
+        flash('You do not have access to this appointment', 'error')
+        return redirect(url_for('doctor_dashboard'))
+    
+    if not appointment.get('zoom_meeting_link'):
+        flash('No Zoom meeting has been created for this appointment yet', 'warning')
+        return redirect(url_for('patient_dashboard' if user_role == 'patient' else 'doctor_dashboard'))
+    
+    return render_template('zoom_meeting.html', appointment=appointment, user_role=user_role)
+
+@app.route('/my_zoom_meetings')
+@login_required
+def my_zoom_meetings():
+    """View all Zoom meetings for the logged-in user"""
+    user_id = session.get('user_id')
+    user_role = session.get('role')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    if user_role == 'patient':
+        cursor.execute("""
+            SELECT a.*, d.name as doctor_name, d.designation,
+                   a.zoom_meeting_link, a.zoom_meeting_id, a.zoom_password
+            FROM appointment a
+            JOIN doctor d ON a.d_id = d.d_id
+            WHERE a.p_id = %s 
+            AND a.appointment_type = 'telemedicine'
+            AND a.confirmation = '1'
+            AND a.zoom_meeting_link IS NOT NULL
+            ORDER BY a.date DESC, a.time DESC
+        """, (user_id,))
+    else:  # doctor
+        cursor.execute("""
+            SELECT a.*, p.name as patient_name, p.phone,
+                   a.zoom_meeting_link, a.zoom_meeting_id, a.zoom_password
+            FROM appointment a
+            JOIN patient p ON a.p_id = p.p_id
+            WHERE a.d_id = %s 
+            AND a.appointment_type = 'telemedicine'
+            AND a.confirmation = '1'
+            AND a.zoom_meeting_link IS NOT NULL
+            ORDER BY a.date DESC, a.time DESC
+        """, (user_id,))
+    
+    meetings = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    return render_template('my_zoom_meetings.html', meetings=meetings, user_role=user_role)
+
+@app.route('/patient_appointments')
+@login_required
+def patient_appointments():
+    """View all appointments for the logged-in patient"""
+    p_id = session.get('user_id')
+    
+    if session.get('role') != 'patient':
+        flash('Access denied. Patients only.', 'error')
+        return redirect(url_for('login'))
+    
+    # Fetch all appointments with details
+    appointments = get_patient_appointments_with_details(p_id)
+    
+    # Add status labels for display
+    for appointment in appointments:
+        if appointment['confirmation'] == 0:
+            appointment['status_label'] = 'Pending'
+            appointment['status_class'] = 'warning'
+        elif appointment['confirmation'] == 1:
+            appointment['status_label'] = 'Confirmed'
+            appointment['status_class'] = 'success'
+        elif appointment['confirmation'] == 2:
+            appointment['status_label'] = 'Cancelled'
+            appointment['status_class'] = 'danger'
+        elif appointment['confirmation'] == 3:
+            appointment['status_label'] = 'Reschedule Requested'
+            appointment['status_class'] = 'info'
+        else:
+            appointment['status_label'] = 'Unknown'
+            appointment['status_class'] = 'secondary'
+        
+        # Format date for display
+        if isinstance(appointment['date'], date):
+            appointment['date_display'] = appointment['date'].strftime('%B %d, %Y')
+        else:
+            appointment['date_display'] = str(appointment['date'])
+    
+    return render_template('patient_appointments.html', appointments=appointments)
+
+@app.route('/patient_upcoming_appointments')
+@login_required
+def patient_upcoming_appointments():
+    """View only upcoming appointments for the logged-in patient"""
+    p_id = session.get('user_id')
+    
+    if session.get('role') != 'patient':
+        flash('Access denied. Patients only.', 'error')
+        return redirect(url_for('login'))
+    
+    # Fetch upcoming appointments
+    appointments = get_upcoming_patient_appointments(p_id)
+    
+    # Add status labels
+    for appointment in appointments:
+        if appointment['confirmation'] == 0:
+            appointment['status_label'] = 'Pending Confirmation'
+            appointment['status_class'] = 'warning'
+        elif appointment['confirmation'] == 1:
+            appointment['status_label'] = 'Confirmed'
+            appointment['status_class'] = 'success'
+        elif appointment['confirmation'] == 3:
+            appointment['status_label'] = 'Reschedule Requested'
+            appointment['status_class'] = 'info'
+        else:
+            appointment['status_label'] = 'Unknown'
+            appointment['status_class'] = 'secondary'
+        
+        # Format date
+        if isinstance(appointment['date'], date):
+            appointment['date_display'] = appointment['date'].strftime('%B %d, %Y')
+        else:
+            appointment['date_display'] = str(appointment['date'])
+    
+    return render_template('patient_upcoming_appointments.html', appointments=appointments)
+
+#============================================
 
 
+#============================================
 
-
-
-
-
-#############################################
 # LOGOUT
-#############################################
 @app.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
 
-
-#############################################
 # RUN APP
-#############################################
 if __name__ == '__main__':
     app.run(debug=True)

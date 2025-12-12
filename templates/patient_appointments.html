@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .appointment-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+            border-left: 4px solid #ddd;
+        }
+        .appointment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .appointment-card.status-success {
+            border-left-color: #28a745;
+        }
+        .appointment-card.status-warning {
+            border-left-color: #ffc107;
+        }
+        .appointment-card.status-danger {
+            border-left-color: #dc3545;
+        }
+        .appointment-card.status-info {
+            border-left-color: #17a2b8;
+        }
+        .zoom-link-btn {
+            background: linear-gradient(135deg, #2d8cff 0%, #0066cc 100%);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .zoom-link-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(45, 140, 255, 0.4);
+        }
+        .appointment-type-badge {
+            font-size: 0.85rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        .back-btn {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-calendar-alt"></i> My Appointments</h2>
+                    <a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% if appointments %}
+                    <div class="row">
+                        {% for app in appointments %}
+                        <div class="col-md-6">
+                            <div class="card appointment-card status-{{ app.status_class }}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-user-md text-primary"></i> 
+                                            Dr. {{ app.doctor_name }}
+                                        </h5>
+                                        <span class="badge bg-{{ app.status_class }}">
+                                            {{ app.status_label }}
+                                        </span>
+                                    </div>
+
+                                    {% if app.doctor_designation %}
+                                    <p class="text-muted mb-2">
+                                        <small><i class="fas fa-stethoscope"></i> {{ app.doctor_designation }}</small>
+                                    </p>
+                                    {% endif %}
+
+                                    <div class="mb-2">
+                                        <span class="appointment-type-badge {% if app.appointment_type == 'telemedicine' %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
+                                            {% if app.appointment_type == 'telemedicine' %}
+                                                <i class="fas fa-video"></i> Telemedicine
+                                            {% else %}
+                                                <i class="fas fa-hospital"></i> {{ app.appointment_type|title }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar text-success"></i> 
+                                        <strong>{{ app.date_display }}</strong>
+                                    </p>
+                                    <p class="mb-3">
+                                        <i class="fas fa-clock text-warning"></i> 
+                                        <strong>{{ app.time }}</strong>
+                                    </p>
+
+                                    {% if app.doctor_phone %}
+                                    <p class="mb-2">
+                                        <i class="fas fa-phone text-info"></i> {{ app.doctor_phone }}
+                                    </p>
+                                    {% endif %}
+
+                                    {% if app.appointment_type == 'telemedicine' and app.confirmation == 1 and app.zoom_meeting_link %}
+                                    <hr>
+                                    <div class="zoom-section">
+                                        <h6 class="mb-2"><i class="fas fa-video"></i> Zoom Meeting Details</h6>
+                                        <p class="mb-1"><small><strong>Meeting ID:</strong> {{ app.zoom_meeting_id }}</small></p>
+                                        {% if app.zoom_password %}
+                                        <p class="mb-2"><small><strong>Password:</strong> {{ app.zoom_password }}</small></p>
+                                        {% endif %}
+                                        <a href="{{ app.zoom_meeting_link }}" target="_blank" class="btn zoom-link-btn w-100">
+                                            <i class="fas fa-video"></i> Join Zoom Meeting
+                                        </a>
+                                    </div>
+                                    {% elif app.appointment_type == 'telemedicine' and app.confirmation == 1 and not app.zoom_meeting_link %}
+                                    <div class="alert alert-warning mb-0">
+                                        <small><i class="fas fa-exclamation-triangle"></i> Zoom link will be available once doctor confirms.</small>
+                                    </div>
+                                    {% elif app.appointment_type == 'telemedicine' and app.confirmation == 0 %}
+                                    <div class="alert alert-info mb-0">
+                                        <small><i class="fas fa-info-circle"></i> Waiting for doctor confirmation. Zoom link will be generated after confirmation.</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <h4>No appointments found</h4>
+                        <p>You don't have any appointments yet. Book an appointment with a doctor to get started.</p>
+                        <a href="{{ url_for('verified_doctor_list') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus"></i> Book Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
