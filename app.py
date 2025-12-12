@@ -933,7 +933,7 @@ def request_appointment_progress():
     insert_appointment(d_id, p_id, appointment_date, slot_time, appointment_type)
     appointment= get_latest_appointment()
     if appointment["appointment_type"]=="telemedicine":
-        populate_telemed_payment(appointment["app_id"],p_id,d_id)
+        populate_telemed_payment(appointment["app_id"]) #change here by Anghsu
 
     success = "Your appointment request has been successfully placed!"
 
