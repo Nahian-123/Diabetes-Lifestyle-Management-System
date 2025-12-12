@@ -109,7 +109,11 @@
                         <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-capsule"></i> 24/7 AI care</a>
                         <!-- <p class="space-between"></p> -->
                     </li>
-
+                    <li class="nav-item">
+                        <!--<p class="space-between"></p>-->
+                        <a class="nav-link" href="{{url_for('telemedicine_payment') }}"><i class="bi bi-currency-dollar"></i> Telemedicine Payment</a>
+                        <!--<p class="space-between"></p>-->
+                    </li>
 
                     <li class="nav-item">
                         <!-- <p class="space-between"></p> -->
@@ -272,7 +276,7 @@
 
 
 <!--GRAPH , remove the comment out sign while running the project-->
-<!-- <script>
+<script>
     const ctx = document.getElementById('glucoseChart').getContext('2d');
     const glucoseChart = new Chart(ctx, {
         type: 'bar',
@@ -333,7 +337,7 @@
 
 
     });
-</script> -->
+</script>
 
 
 
