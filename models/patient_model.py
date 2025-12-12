@@ -767,3 +767,56 @@ def get_upcoming_patient_appointments(p_id):
     
     return appointments
 
+#============ Angshu M2 starts =====================
+def get_confirmed_app_id(p_id):
+    """
+    Fetches all confirmed telemedicine appointment IDs for a specific patient.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = """
+        SELECT app_id 
+        FROM appointment 
+        WHERE p_id = %s 
+        AND confirmation = 1 
+        AND appointment_type = 'telemedicine'
+    """
+    cursor.execute(query, (p_id,))
+    result = cursor.fetchall()
+    # Returns a list of app_ids, e.g., [41, 42]
+    return [row['app_id'] for row in result] 
+
+def get_unpaid_telemed(app_id_list):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    """
+    Checks the telemedicine_payment table for unpaid status among the provided app_ids.
+    """
+    if not app_id_list:
+        return []
+    
+    # Create a format string for the IN clause (e.g., %s, %s, %s)
+    format_strings = ','.join(['%s'] * len(app_id_list))
+    
+    query = f"""
+        SELECT * FROM telemedicine_payment 
+        WHERE app_id IN ({format_strings}) 
+        AND paid = 0
+    """
+    
+    cursor.execute(query, tuple(app_id_list))
+    return cursor.fetchall()
+
+def populate_telemed_payment(app_id):
+   
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    query = "INSERT INTO telemedicine_payment (app_id) VALUES (%s)"
+    cursor.execute(query, (app_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+   
+
+#============ Angshu M2 ends =====================

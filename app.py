@@ -15,21 +15,12 @@ import json
 # Import models
 from models.user_model import login_user, register_user, validate_email
 
-from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices
+from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment #last 3 imports by angshu
 from models.user_model import login_user, register_user, validate_email
 from models.doctor_model import get_doctor_name, get_doctor_notices 
 from models.admin_model import insert_notice,get_dashboard_stats
-
-# For Google Calendar API
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-import os
-
-# Google Calendar API Setup
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
-CLIENT_SECRETS_FILE = "client_secret.json"
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
+from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
 
 
 app = Flask(__name__, template_folder="templates")
@@ -686,7 +677,6 @@ def update_patient_profile():
 
     #fetching patient details
     patient = get_patient_details(p_id)
-
     if not patient:
         flash("No data found for this patient.")
         return redirect('/update_patient_profile')
@@ -701,7 +691,7 @@ def update_patient_profile():
         gl_a_breakfast = request.form['gl_a_breakfast']
         gl_b_lunch = request.form['gl_b_lunch']
         gl_b_dinner = request.form['gl_b_dinner']
-
+        
         #Checking if glucose values changed
         values_changed = (
             float(gl_b_breakfast) != float(patient['gl_b_breakfast']) or
@@ -932,6 +922,9 @@ def request_appointment_progress():
 
     # Insert new appointment
     insert_appointment(d_id, p_id, appointment_date, slot_time, appointment_type)
+    appointment= get_latest_appointment()
+    if appointment["appointment_type"]=="telemedicine":
+        populate_telemed_payment(appointment["app_id"],p_id,d_id)
 
     success = "Your appointment request has been successfully placed!"
 
@@ -1086,6 +1079,90 @@ def create_google_calendar_event(app_id):
         return False
 
 #==========LABIBA M2 ends=====================================================================
+
+
+#==========Angshu M2 starts===========
+@app.route('/telemedicine_payment', methods=['GET'])
+def telemedicine_payment():
+    # 1. Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login')) # Redirect if not logged in
+    
+    p_id = session['user_id']
+    
+    # 2. Get confirmed app_ids from appointment table
+    confirmed_apps_ids = get_confirmed_app_id(p_id)
+    
+    # 3. Get unpaid details from telemedicine_payment table
+    # Note: This assumes rows exist in telemedicine_payment for these appointments.
+    # If rows are created only upon payment attempt, logic might need adjustment.
+    unpaid_appointments = get_unpaid_telemed(confirmed_apps_ids)
+    
+    # 4. Render the template
+    return render_template(
+        'telemedicine_payment.html', 
+        name=session.get('name', 'Patient'), # Passing name for header
+        p_id=p_id,
+        unpaid_list=unpaid_appointments
+    )
+
+
+
+
+@app.route('/save_card_details', methods=['POST'])
+def save_card_details():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+        
+    p_id = request.form['p_id']
+    app_id = request.form['app_id']
+    card_number = request.form['card_number'].replace(" ", "")
+    cvv = request.form['cvv']
+    expiration_date = request.form['expiration_date']
+    
+    payment_amount = 1000.00 
+
+    # --- UPDATED VERIFICATION CALL ---
+    # Now passing p_id as the first argument
+    card_status = verify_card_details(p_id, card_number, cvv, expiration_date)
+    print(f"from app.py {card_status}")
+    # --- Handle Results ---
+    if card_status == "EXPIRED":
+        return render_template('payment_gateway.html', 
+                               app_id=app_id, 
+                               p_id=p_id, 
+                               error="Payment Failed: This card has expired.")
+                               
+    elif card_status == "INVALID":
+        
+        return render_template('payment_gateway.html', 
+                               app_id=app_id, 
+                               p_id=p_id, 
+                               error="Verification Failed: The Card Number or CVV or Expiry Date does not match our records for this card.")
+
+    # --- Processing ---
+    is_new = (card_status == "NEW")
+    
+    success = finalize_telemedicine_transaction(p_id, app_id, card_number, cvv, expiration_date, payment_amount, is_new)
+
+    if success:
+        return redirect(url_for('telemedicine_payment'))
+    else:
+        return render_template('payment_gateway.html', 
+                               app_id=app_id, 
+                               p_id=p_id, 
+                               error="System error processing payment. Please try again.")
+
+@app.route('/payment_gateway/<int:app_id>')
+def payment_gateway(app_id):
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Render the credit card page, passing the specific app_id
+    # This allows the page to know WHICH appointment is being paid for
+    return render_template('payment_gateway.html', app_id=app_id, p_id=session['user_id'])
+#==========Angshu M2 End===========
 
 @app.route('/join_zoom/<int:app_id>')
 @login_required
@@ -1246,8 +1323,12 @@ def patient_upcoming_appointments():
 #============================================
 
 
-#============================================
 
+
+
+
+
+#############################################
 # LOGOUT
 @app.route('/logout')
 def logout():
