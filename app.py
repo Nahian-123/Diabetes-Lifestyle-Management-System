@@ -54,7 +54,7 @@ def index():
 
 
 
-
+from models.user_model import login_user, register_user, validate_email
 #############################################
 # REGISTER ROUTE  - SIMPLIFIED (no extra field needed)
 #############################################
@@ -106,7 +106,11 @@ def login():
 
         email = request.form['email']
         password = request.form['password']
+
        
+#=======
+        
+
         user_data = login_user(email, password)
        
         if user_data:
@@ -135,6 +139,7 @@ def login():
 
 
     return render_template('login.html')
+
 
 # ############################################################
 # # >>> NEW: FACE VERIFICATION PAGE <<<
