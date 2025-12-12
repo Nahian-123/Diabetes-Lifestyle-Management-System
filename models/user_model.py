@@ -1,19 +1,23 @@
+# =====Updated user_modelpy given by aditya========
 from db import get_db_connection
 import re
 from datetime import datetime
 
+
 ADMIN_EMAIL_DOMAIN = "@admin.dms.com"
 DOCTOR_EMAIL_DOMAIN = "@doctor.dms.com"
+
 
 def validate_email(email):
     """Validate email format"""
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(email_pattern, email)
 
+
 def detect_role_from_email(email):
     """Detect user role based on email domain"""
     email_lower = email.lower()
-    
+   
     if email_lower.endswith(ADMIN_EMAIL_DOMAIN):
         return 'admin'
     elif email_lower.endswith(DOCTOR_EMAIL_DOMAIN):
@@ -21,16 +25,17 @@ def detect_role_from_email(email):
     else:
         return 'patient'
 
+
 def login_user(email, password):
     """Login a user - role is determined by email domain"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     user = None
     user_data = None
-    
+   
     # Detect role from email domain
     role = detect_role_from_email(email)
-    
+   
     try:
         if role == 'admin':
             cursor.execute('SELECT * FROM admin WHERE email = %s AND password = %s', (email, password))
@@ -43,12 +48,13 @@ def login_user(email, password):
                     'name': user.get('name', 'Admin')
                 }
         elif role == 'doctor':
-            cursor.execute('SELECT * FROM doctor WHERE email = %s AND password = %s', (email, password))
+            cursor.execute('SELECT * FROM doctor WHERE domain_email = %s AND password = %s', (email, password))
             user = cursor.fetchone()
             if user:
                 user_data = {
                     'user_id': user['d_id'],
-                    'email': user['email'],
+                    'email': user['domain_email'],  # Domain email for session
+                    'real_email': user['email'],    # Real email for Google integrations
                     'role': 'doctor',
                     'name': user['name']
                 }
@@ -65,43 +71,50 @@ def login_user(email, password):
     finally:
         cursor.close()
         conn.close()
-    
+   
     return user_data if user else None
-    
+   
+
 
 def register_user(username, email, password, role, doctor_data=None):
     """Register a new user"""
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     result = {'success': False, 'message': ''}
-    
+   
     try:
-        # Check if email already exists in the appropriate table
         if role == 'doctor':
+            local_part = email.split('@')[0]
+            domain_email = local_part + DOCTOR_EMAIL_DOMAIN
+           
+            # Check if real email already exists
             cursor.execute('SELECT * FROM doctor WHERE email = %s', (email,))
             if cursor.fetchone():
                 result['message'] = 'Email already registered as a doctor'
                 return result
-            
-            if role == "doctor":
-                
-                cursor.execute(
-                    '''INSERT INTO doctor 
-                    (name, email, password, designation, verified) 
-                    VALUES (%s, %s, %s, %s, %s)''',
-                    (username, email, password, 'General Physician', 0)
-                )
-                conn.commit()
-                result['success'] = True
-                result['message'] = 'Registration successful! You are a BMDC verified doctor. Please wait for admin approval before logging in.'
-            
-        elif role == 'Patient':
+           
+            # Check if domain_email already exists
+            cursor.execute('SELECT * FROM doctor WHERE domain_email = %s', (domain_email,))
+            if cursor.fetchone():
+                result['message'] = 'A doctor with this username already exists'
+                return result
+           
+            cursor.execute(
+                '''INSERT INTO doctor
+                (name, email, domain_email, password, designation, verified)
+                VALUES (%s, %s, %s, %s, %s, %s)''',
+                (username, email, domain_email, password, 'General Physician', 0)
+            )
+            conn.commit()
+            result['success'] = True
+            result['message'] = f'Registration successful! Your login email is: {domain_email}. Please wait for admin approval before logging in.'
+           
+        elif role == 'patient':
             cursor.execute('SELECT * FROM patient WHERE email = %s', (email,))
             if cursor.fetchone():
                 result['message'] = 'Email already registered as a patient'
                 return result
-            
-            # Insert new patient
+           
             cursor.execute(
                 'INSERT INTO patient (name, email, password) VALUES (%s, %s, %s)',
                 (username, email, password)
@@ -114,5 +127,8 @@ def register_user(username, email, password, role, doctor_data=None):
     finally:
         cursor.close()
         conn.close()
-    
+   
     return result
+
+
+

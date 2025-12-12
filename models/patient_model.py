@@ -442,5 +442,250 @@ def get_patient_notices(p_id):
     return notices
 
 
+#============ LABIBA M1 Starts =====================
+def get_patient_name_glucose_info_update(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT name, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on
+        FROM patient
+        WHERE p_id = %s
+    """
+    cursor.execute(sql, (p_id,))
+    patient = cursor.fetchone()
+    conn.close()
+    return patient
 
+def get_latest_SMBG_routine(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+
+    sql = """
+        SELECT prescription.weekly_smbg,
+               prescription.date,
+               doctor.name AS doctor_name
+        FROM prescription
+        JOIN doctor ON prescription.d_id = doctor.d_id
+        WHERE prescription.p_id = %s
+        ORDER BY prescription.date DESC
+    """
+    cursor.execute(sql, (p_id,))
+    prescriptions = cursor.fetchall()
+
+
+    cursor.close()
+    conn.close()
+
+
+    return prescriptions
+
+
+def get_patient_name_glucose_info_update(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT name, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on
+        FROM patient
+        WHERE p_id = %s
+    """
+    cursor.execute(sql, (p_id,))
+    patient = cursor.fetchone()
+    conn.close()
+    return patient
+
+
+
+def get_patient_details(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT name, email, dob, phone, weight, gender,
+        gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, followup_date
+        FROM patient WHERE p_id = %s
+    """
+    cursor.execute(sql, (p_id,))
+    patient = cursor.fetchone()
+    return patient
+#============ LABIBA M1 ends =====================
+
+
+
+#============ LABIBA M2 starts =====================
+
+
+def filter_doctor_by_area(area):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql="SELECT * FROM doctor WHERE area = %s"
+    
+    cursor.execute(sql, (area,))
+    doctor = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return doctor
+
+def get_verified_doctor_details():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT d_id, name, designation, location, email, phone 
+        FROM doctor 
+        WHERE verified = 1 AND designation IS NOT NULL 
+        AND location IS NOT NULL AND phone IS NOT NULL
+    """
+    cursor.execute(sql)
+    doctor = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return doctor
+
+def get_distinct_area():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql="SELECT DISTINCT area FROM doctor WHERE area IS NOT NULL"
+    
+    cursor.execute(sql)
+    distinct_area_dictionary= cursor.fetchall()
+    distinct_area_lst = [row['area'] for row in distinct_area_dictionary]
+    cursor.close()
+    conn.close()
+
+    return distinct_area_lst
+
+
+def get_patient_details(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT name, email, dob, phone, weight, gender,
+        gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, followup_date
+        FROM patient WHERE p_id = %s
+    """
+    cursor.execute(sql, (p_id,))
+    patient = cursor.fetchone()
+    return patient
+
+def update_patient_details(dob, phone, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+            UPDATE patient SET
+                dob = %s,
+                phone = %s,
+                weight = %s,
+                gender = %s,
+                gl_b_breakfast = %s,
+                gl_a_breakfast = %s,
+                gl_b_lunch = %s,
+                gl_b_dinner = %s,
+                updated_on = %s
+            WHERE p_id = %s
+        """
+    cursor.execute(sql, (dob, phone, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id))
+
+    conn.commit() #changes in DB will be saved
+    cursor.close()
+    conn.close()
+
+
+def get_doctor_weekly_schedule(d_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql = """
+        SELECT * 
+        FROM doctor_schedule 
+        WHERE d_id = %s
+    """
+    cursor.execute(sql, (d_id,))
+    schedule = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    return schedule
+
+
+
+def get_doctor_slots(d_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT * FROM doctor_slot WHERE d_id = %s
+    """, (d_id,))
+    slots = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+    return slots
+
+def get_patient_required_fields(p_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    sql= """
+        SELECT name, dob, weight, gender,
+               gl_b_breakfast, gl_a_breakfast,
+               gl_b_lunch, gl_b_dinner
+        FROM patient 
+        WHERE p_id = %s
+        """
+    cursor.execute(sql, (p_id,))
+    required_fields= cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    return required_fields
+
+def check_appointment_next_week(p_id, today, next_7_days):
+    """
+    Returns appointment details if the patient has
+    a pending or confirmed appointment within next 7 days,
+    otherwise returns None.
+    """
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    sql = """
+        SELECT app_id, d_id, p_id, date, time, confirmation, appointment_type
+        FROM appointment
+        WHERE p_id = %s 
+          AND date BETWEEN %s AND %s
+          AND confirmation IN (0, 1) 
+        LIMIT 1
+    """
+
+    cursor.execute(sql, (p_id, today, next_7_days))
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    # Automatically returns a dictionary (or None if no result)
+    return row
+
+
+def update_doctor_slot(d_id, slot_col):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(f"UPDATE doctor_slot SET {slot_col} = 1 WHERE d_id = %s", (d_id,))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+def insert_appointment(d_id, p_id, date, time, appointment_type):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if appointment_type== "inperson":
+        appointment_type= "in-person"
+    sql = "INSERT INTO appointment (d_id, p_id, date, time, appointment_type) VALUES (%s, %s, %s, %s, %s)"
+    cursor.execute(sql, (d_id, p_id, date, time, appointment_type))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return True
+#============ LABIBA M2 ends =====================
 

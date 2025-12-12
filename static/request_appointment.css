@@ -1,0 +1,204 @@
+:root{
+  --bg: #e9f1fb;
+  --card: #f7f8fb;
+  --accent: #1b4ed8;
+  --green: #39b54a;
+  --grey: #d7d7db;
+  --slot-bg: #eaf7ff;
+  --card-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  --radius: 14px;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+.sidebar-logo-img {
+    width: 150px;          /* adjust size as needed */
+    height: 150px;         /* must be equal to width */
+    object-fit: cover;     /* crops the image to fill the circle */
+    border-radius: 50%;    /* makes it a circle */
+    border: 3px solid #007bff; /* optional: add blue border */
+}
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.sidebar-sticky .nav-link {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color:  #8b99aa;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}
+
+body{
+  margin:0;
+  padding:0;
+  background: var(--bg);
+  color:#222;
+}
+
+.page{
+  max-width:1200px;
+  margin:28px auto;
+  padding:20px;
+}
+
+.page-title{
+  text-align:center;
+  font-size:34px;
+  margin-bottom:18px;
+  color:#0f172a;
+}
+
+.card{
+  background:#f3f6fb;
+  border-radius:18px;
+  padding:22px;
+  box-shadow: var(--card-shadow);
+}
+.left-panel-card {
+    min-height: 400px;   /* adjust as needed */
+}
+
+
+/* Make dropdown fields same height as slot buttons */
+.form-select {
+    height: 55px !important;
+    font-size: 1rem !important;
+    border-radius: 14px !important;
+}
+/* .left-panel-card .form-label {
+    font-size: 1.1rem;   
+    font-weight: 700;   
+    color: #0f172a;     
+} */
+.left-panel-card .form-label {
+    font-size: 1.2rem !important;   /* same size */
+    font-weight: 700 !important;    /* bold */
+    color: #4f5155 !important;      /* same dark color */
+    margin-bottom: 6px;             /* optional: better spacing */
+}
+
+
+
+/* ---------------------------- */
+/*  NEW SLOT GRID (2 COLUMNS)   */
+/* ---------------------------- */
+
+.slot-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 5px 10px;
+}
+
+/* SLOT BUTTON HALF SIZE */
+.slot-btn {
+    width: 100% !important;
+    height: 55px !important;
+    border-radius: 30px !important;
+    font-size: 0.95rem !important;
+}
+
+
+/* AVAILABLE */
+/* .slot-btn.available {
+    background: #d8f7e5;
+    border: 1px solid #52b788;
+} */
+/* AVAILABLE – Darker & readable */
+.slot-btn.available {
+    background: #b8f0cf !important;        /* darker mint */
+    border: 2px solid #3da56d !important;
+    color: #0e3d26 !important;             /* dark green text */
+    font-weight: 600;
+}
+/* HOVER EFFECT — only for AVAILABLE slots */
+.slot-btn.available:hover {
+    background: #a3e8c1 !important;       /* slightly darker mint */
+    border-color: #2e8c57 !important;     /* stronger green */
+    color: #06351f !important;
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+/* BOOKED */
+/* .slot-btn.booked {
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    cursor: not-allowed;
+} */
+/* BOOKED – Stronger gray */
+.slot-btn.booked {
+    background: #d5d5d5 !important;
+    border: 2px solid #b5b5b5 !important;
+    color: #6a6a6a !important;
+    cursor: not-allowed;
+    font-weight: 600;
+}
+/* DISABLE hover on BOOKED slots */
+.slot-btn.booked:hover {
+    background: #d5d5d5 !important;
+    border-color: #b5b5b5 !important;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* SELECTED */
+/* .slot-btn.selected {
+    border: 3px solid #1b4ed8 !important;
+    background: #dbe7ff !important;
+} */
+/* SELECTED – High contrast */
+.slot-btn.selected {
+    background: #7290f2 !important;
+    color: white !important;
+    border: 3px solid #002bb8 !important;
+    font-weight: 700;
+}
+/* SELECTED — keep stable but add a tiny hover pulse */
+.slot-btn.selected:hover {
+    background: #6988f0 !important;
+    border-color: #001f8f !important;
+    transform: translateY(-2px);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+/* Centered submit button outside the card */
+.submit-wrapper {
+    width: 100%;
+    text-align: center;
+    margin-top: 25px;
+}
+
+.submit-btn {
+    width: 200px;
+    height: 55px;
+    font-size: 1.2rem;
+    border-radius: 14px;
+}
+
+
