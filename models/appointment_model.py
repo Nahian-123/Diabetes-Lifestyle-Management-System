@@ -16,7 +16,6 @@ def get_appointment_by_id(app_id):
     return appointment
 
 #======LABIBA M2 ends==============================================
-<<<<<<< HEAD
 
 
 def get_patient_appointments_with_zoom(p_id):
@@ -45,7 +44,6 @@ def get_patient_appointments_with_zoom(p_id):
 
 
 
-=======
 #======Angshu M2 strats==============================================
 def get_latest_appointment():
     """
@@ -62,4 +60,3 @@ def get_latest_appointment():
         cursor.close()
         conn.close()
 #======Angshu M2 ends==============================================
->>>>>>> 0076bea61cea1d974306a23f63511e0b476af2e1
