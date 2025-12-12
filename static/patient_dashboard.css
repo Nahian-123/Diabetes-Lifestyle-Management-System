@@ -1,3 +1,11 @@
+.sidebar-logo-img {
+    width: 150px;          /* adjust size as needed */
+    height: 150px;         /* must be equal to width */
+    object-fit: cover;     /* crops the image to fill the circle */
+    border-radius: 50%;    /* makes it a circle */
+    border: 3px solid #007bff; /* optional: add blue border */
+}
+
 .sidebar-sticky {
     padding-top: 20px;
     height: 100vh;
@@ -63,26 +71,19 @@
     white-space: nowrap;                    /* Force one line */
 }
 
-/*.sos-button {
-    background-color: #dc3545;  Bootstrap's danger red 
-    border-color: #dc3545;
-    color: white;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-  }*/
-  
-  /*.sos-button:hover {
-    background-color: #bd2130;  Darker red on hover 
-    border-color: #b21f2d;
-  }*/
-
-  /* new code angshu */
-.medication-reminder {
-    background-color: rgba(255, 0, 0, 0.08);  /* Light transparent red */
-    color: #721c24;
-    padding: 8px 12px;
-    border-radius: 5px;
-    font-size: 14px;
-    width: fit-content;
-    max-width: 100%;
-    line-height: 1.4;
+.smbg-details {
+    background-color: rgba(128, 0, 128, 0.10);  /* Light purple */
+    color: #4a235a;  /* Deep purple text */
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 15px;     /* Increased font size */
+    width: 100%;         /* Full width like medication box */
+    max-width: 100%;     
+    line-height: 1.5;
+    margin-top: 10px;
+    border: 1px solid rgba(128, 0, 128, 0.2);
+    box-shadow: 0 1px 2px rgba(128, 0, 128, 0.08);
 }
+
+
+

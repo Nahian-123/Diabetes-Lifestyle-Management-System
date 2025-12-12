@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctors List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/verified_doctor_list.css') }}">
+    <!-- <style>
+        .review-section {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .review-item {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .review-author {
+            font-weight: 600;
+        }
+        .review-date {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        .review-content {
+            font-style: italic;
+            color: #333;
+        }
+        .star-rating {
+            color: #ffc107;
+            margin-right: 5px;
+        }
+        .empty-star {
+            color: #e4e5e9;
+        }
+        .review-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .review-count {
+            background-color: #6c757d;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+        .no-reviews {
+            font-style: italic;
+            color: #6c757d;
+        }
+    </style> -->
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+
+                <!-- ⭐ Logo Section START -->
+                <div class="sidebar-logo text-center my-3">
+                    <img src="{{ url_for('static', filename='DLMS logo.png') }}" 
+                        class="img-fluid sidebar-logo-img" 
+                        alt="Logo">
+                    <h5 class="mt-2 fw-bold">DLMS</h5>
+                </div>
+                <!-- ⭐ Logo Section END -->
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link active" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-person-fill"></i> Diet suggestion</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-capsule"></i> 24/7 AI care</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                <h1 class="text-center my-4 fw-bold text-dark">Meet Our Doctors</h1>
+
+                <!-- Search Box with Dropdown -->
+                <form method="get" action="{{ url_for('verified_doctor_list') }}" class="d-flex">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Filter doctors by area" value="{{ request.args.get('area', '') }}" readonly>
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Select Area
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% for area in areas %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('verified_doctor_list', area=area) }}">{{ area }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            {% if doctor %}
+                {% for doc in doctor %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Name: Dr. {{ doc.name }}</h5>
+                            <p class="card-text">Designation & Degree: {{ doc.designation }}</p>
+                            <p class="card-text">Location: {{ doc.location }}</p>
+                            <p class="card-text">Email Address: {{ doc.email }}</p>
+                            <p class="card-text">Phone No: {{ doc.phone }}</p>
+                            
+                            <!-- Reviews Section -->
+                            <!--<div class="review-section">
+                                <div class="review-title">
+                                    <h6 class="mb-0">Patient Reviews</h6>
+                                    {% if doc.reviews %}
+                                        <span class="review-count">{{ doc.reviews|length }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if doc.reviews %}
+                                    {% for review in doc.reviews %}
+                                        <div class="review-item">
+                                            <div class="review-header">
+                                                <span class="review-author">{{ review.patient_name }}</span>
+                                                <span class="review-date">{{ review.date }}</span>
+                                            </div>
+                                            <div class="mb-1">
+                                                {% for i in range(5) %}
+                                                    {% if i < review.rating %}
+                                                        <i class="bi bi-star-fill star-rating"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-star star-rating empty-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <p class="review-content mb-0">{{ review.comment }}</p>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="no-reviews">No reviews yet for this doctor.</p>
+                                {% endif %}
+                            </div> -->
+                            
+                            <a href="{{ url_for('request_appointment', d_id=doc.d_id) }}" class="btn btn-primary mt-3">Request Appointment</a>
+                            
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No verified doctors found.</p>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap JS (for responsiveness) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

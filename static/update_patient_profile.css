@@ -1,0 +1,84 @@
+.flash-box {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    opacity: 0;
+    z-index: 9999;
+    animation: fadeInOut 5s ease-in-out forwards;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.flash-success {
+    background-color: #28a745;
+}
+
+.flash-error {
+    background-color: #dc3545;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.content {
+    padding-left: 20px;
+}
+.sidebar-logo-img {
+    width: 150px;          /* adjust size as needed */
+    height: 150px;         /* must be equal to width */
+    object-fit: cover;     /* crops the image to fill the circle */
+    border-radius: 50%;    /* makes it a circle */
+    border: 3px solid #007bff; /* optional: add blue border */
+}
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.container-fluid {
+    background: linear-gradient(to right, rgba(173, 216, 230, 0.6) 20%, rgba(255, 255, 255, 0.0) 80%);
+}
+.sidebar-sticky .nav-link {
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color: #8b99aa; /* #4d84c9;*/
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}

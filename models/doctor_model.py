@@ -74,3 +74,33 @@ def update_appointment_status(app_id, d_id, action):
     cursor.close()
     conn.close()
 #==========NAHIIAN M2 ends===========
+
+
+#==========LABIBA M1 starts=====================================================================
+def insert_prescription(p_id, d_id, date, weekly_smbg):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO prescription (p_id, d_id, date, weekly_smbg)
+        VALUES (%s, %s, %s, %s)
+    """, (p_id, d_id, date, weekly_smbg))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+
+#==========LABIBA M1 ends=====================================================================
+
+#==========LABIBA M2 starts=====================================================================
+
+def get_doctor_by_id(d_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM doctor WHERE d_id = %s", (d_id,))
+    doctor = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return doctor
+
+#==========LABIBA M2 ends=====================================================================

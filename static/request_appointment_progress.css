@@ -1,0 +1,84 @@
+.sidebar-logo-img {
+    width: 150px;          /* adjust size as needed */
+    height: 150px;         /* must be equal to width */
+    object-fit: cover;     /* crops the image to fill the circle */
+    border-radius: 50%;    /* makes it a circle */
+    border: 3px solid #007bff; /* optional: add blue border */
+}
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.sidebar-sticky .nav-link {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color:  #8b99aa; /* #4d84c9;*/
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}
+
+body {
+    background: #eef3fb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.progress-box {
+    max-width: 550px;
+    background: white;
+    padding: 40px;
+    margin: auto;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.icon-circle {
+    width: 90px;
+    height: 90px;
+    background: #d4edda;
+    border-radius: 50%;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-circle i {
+    font-size: 50px;
+    color: #28a745;
+}
+
+.success-text {
+    font-size: 26px;
+    margin-top: 20px;
+    font-weight: 700;
+    color: #155724;
+}
+
+.redirect-text {
+    font-size: 18px;
+    margin-top: 15px;
+    color: #444;
+}
