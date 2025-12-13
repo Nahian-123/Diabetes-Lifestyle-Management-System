@@ -41,6 +41,28 @@ def get_schedule(d_id):
 
     result = cursor.fetchone()
 
+    # If no schedule exists (new doctor)
+    if result is None:
+        cursor.execute("""
+            INSERT INTO doctor_schedule
+            (d_id, day1, day2, teleday, day1_starttime, day2_starttime, teleday_starttime)
+            VALUES (%s, NULL, NULL, NULL, NULL, NULL, NULL)
+        """, (d_id,))
+        conn.commit()
+
+        # Fetch again
+        cursor.execute("""
+            SELECT 
+                d_id,
+                day1, day2, teleday,
+                TIME_FORMAT(day1_starttime, '%H:%i') AS day1_starttime,
+                TIME_FORMAT(day2_starttime, '%H:%i') AS day2_starttime,
+                TIME_FORMAT(teleday_starttime, '%H:%i') AS teleday_starttime
+            FROM doctor_schedule
+            WHERE d_id = %s
+        """, (d_id,))
+        result = cursor.fetchone()
+
     cursor.close()
     conn.close()
     return result
