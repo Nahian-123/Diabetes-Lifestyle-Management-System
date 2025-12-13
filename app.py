@@ -419,6 +419,17 @@ def update_schedule():
     schedule = get_schedule(d_id)
     slots = get_slots(d_id)
 
+    #HANDLE NEW DOCTOR (no schedule yet)
+    if schedule["day1"] is None: #then all others are None bc required fields
+            return render_template(
+                "doctor_schedule_updatedversion1.html",
+                schedule=schedule,
+                slots=slots,
+                day1_times="",
+                day2_times="",
+                teleday_times=""
+            )
+    
     def clean_time(t):
         if not t:
             return ""
