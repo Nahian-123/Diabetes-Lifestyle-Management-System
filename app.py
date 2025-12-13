@@ -448,8 +448,8 @@ def update_schedule():
         bd_time = datetime.now(timezone(timedelta(hours=6)))
         today = bd_time.strftime("%A")
 
-        if today != "Saturday":
-            flash("You can update your schedule only on Saturdays.", "error")
+        if today != "Friday":
+            flash("You can update your schedule only on Fridays.", "error")
             return render_template(
                 "doctor_schedule.html",
                 schedule=schedule,
