@@ -5,8 +5,8 @@ from functools import wraps
 import os
 import base64
 import requests  # Added for Zoom API calls
-import jwt  # Added for JWT token generation
-import time
+#import jwt  # Added for JWT token generation
+#import time
 import json
 
 # # DeepFace for verification
