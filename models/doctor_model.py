@@ -104,3 +104,38 @@ def get_doctor_by_id(d_id):
     return doctor
 
 #==========LABIBA M2 ends=====================================================================
+
+
+
+
+#==========NAHIAN M3 (appointment mail) starts=====================================================================
+def get_appointment_details(app_id):  # For Email System
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+        SELECT 
+            appointment.app_id,
+            appointment.date,
+            appointment.time,
+            appointment.confirmation,
+            appointment.appointment_type,   
+            patient.name AS patient_name,
+            patient.email AS patient_email,
+            doctor.name AS doctor_name
+        FROM appointment
+        JOIN patient ON appointment.p_id = patient.p_id
+        JOIN doctor ON appointment.d_id = doctor.d_id
+        WHERE appointment.app_id = %s
+    """
+
+    print("DEBUG app_id:", app_id)
+    cursor.execute(query, (app_id,))
+    data = cursor.fetchone()
+    print("DEBUG SQL DATA:", data)
+
+    cursor.close()
+    conn.close()
+    return data
+
+#==========NAHIAN M3 ends=====================================================================
