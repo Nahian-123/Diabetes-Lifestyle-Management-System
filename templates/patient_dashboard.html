@@ -1,21 +1,154 @@
-{% extends 'patient_base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='patient_dashboard.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2 fw-bold">Welcome, {{ name }}</h1>
-    <!--ANGSHU PART-->
-    <!-- This div contains Bell and ID, INSERT HERE -->
-    <!-- <div class="d-flex justify-content-end align-items-center" style="gap: 20px;"> -->
-    <!-- Bell Icon Angshu -->
-    <!-- <div style="position: relative;">
-        <button id="notificationBell" class="btn btn-link position-relative">
-            <i class="bi bi-bell" style="font-size: 1.8rem;"></i>
-            {% if notifications %}
-                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {{ notifications|length }}
-                </span>
-            {% endif %}
-        </button> -->
+
+    <!--new line-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+</head>
+
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+
+
+                <!-- ⭐ Logo Section START -->
+                <div class="sidebar-logo text-center my-3">
+                    <img src="{{ url_for('static', filename='DLMS logo.png') }}" 
+                        class="img-fluid sidebar-logo-img" 
+                        alt="Logo">
+                    <h5 class="mt-2 fw-bold">DLMS</h5>
+                </div>
+                <!-- ⭐ Logo Section END -->
+
+                <ul class="nav flex-column">
+
+                    <!--new line-->
+                    <!-- <li class="nav-item text-center mt-2">
+                        <a class="btn btn-danger rounded-pill px-4 py-2 sos-button" href="#" onclick="event.preventDefault(); triggerSOS()">
+                          <i class="bi bi-broadcast"></i> Fire SOS
+                        </a>
+                      </li> -->
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link active" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+                    <!--new line-->
+                    <!--<li class="nav-item text-center mt-2">
+                        <a class="btn btn-primary rounded-pill px-4 py-2" href="#" onclick="event.preventDefault(); triggerSOS()">
+                          <i class="bi bi-broadcast"></i> Fire SOS
+                        </a>
+                      </li>-->
+
+
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+
+                         <!-- url_for('update_patient_profile') -->
+                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+
+                    <!--  url_for('verified_doctor_list') -->
+                        <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('my_prescription') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <li class="nav-item">
+                        
+                        
+                        <a class="nav-link" href="{{ url_for('patient_appointments') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-person-fill"></i> Diet suggestion</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+
+
+
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-capsule"></i> 24/7 Urgent Care</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                    <!--AI-->
+                    <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('ai_assistant') }}"><i class="bi bi-lightbulb"></i> AI-Assistant</a>
+                            <!--<p class="space-between"></p>-->
+                    </li>
+                    <li class="nav-item">
+                        <!--<p class="space-between"></p>-->
+                        <a class="nav-link" href="{{url_for('telemedicine_payment') }}"><i class="bi bi-currency-dollar"></i> Telemedicine Payment</a>
+                        <!--<p class="space-between"></p>-->
+                    </li>
+
+                    <li class="nav-item">
+                        <!-- <p class="space-between"></p> -->
+                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <!-- <p class="space-between"></p> -->
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+
+        <!-- Main Content -->
+        <main class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2 fw-bold">Welcome, {{ name }}</h1>
+                <!--ANGSHU PART-->
+                <!-- This div contains Bell and ID, INSERT HERE -->
+                <!-- <div class="d-flex justify-content-end align-items-center" style="gap: 20px;"> -->
+                    <!-- Bell Icon Angshu -->
+                    <!-- <div style="position: relative;">
+                        <button id="notificationBell" class="btn btn-link position-relative">
+                            <i class="bi bi-bell" style="font-size: 1.8rem;"></i>
+                            {% if notifications %}
+                                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ notifications|length }}
+                                </span>
+                            {% endif %}
+                        </button> -->
 
 
     <!-- Dropdown Notifications Angshu -->
@@ -74,20 +207,18 @@
 {% endif %} -->
 
 
-<div class="card mb-3">
-    <div class="card-body card-body-custom">
-        <h4>How to use this website:</h4>
-        <ul>
-            <li>Update your profile from the "Update Profile" section.</li>
-            <li>You need to fulfill your glucose level portion and the whole profile to make a
-                successful appointment.</li>
-            <li>Use glucometer to measure your glucose level 4 times before your appointment day.</li>
-            <li>4 times: before breakfast, after breakfast, before lunch, before dinner</li>
-            <li><a href="https://www.apollo247.com/blog/article/how-to-use-a-glucose-monitor">Step-by-step
-                    guidance to use a glucometer</a></li>
-        </ul>
-    </div>
-</div>
+            <div class="card mb-3">
+                <div class="card-body card-body-custom">
+                    <h4>How to use this website:</h4>
+                    <ul>
+                        <li>Update your profile from the "Update Profile" section.</li>
+                        <li>You need to fulfill your glucose level portion and the whole profile to make a successful appointment.</li>
+                        <li>Use glucometer to measure your glucose level 4 times before your appointment day.</li>
+                        <li>4 times: before breakfast, after breakfast, before lunch, before dinner</li>
+                        <li><a href="https://www.apollo247.com/blog/article/how-to-use-a-glucose-monitor">Step-by-step guidance to use a glucometer</a></li>
+                    </ul>
+                </div>
+            </div>
 
 
 <!-- Glucose Levels Bar Chart -->
@@ -134,15 +265,15 @@
 
 
 
-        <!-- {% if medication_message %}
-    <div class="medication-reminder mt-2">
-        <strong>Medication Reminder</strong><br>
-        {{ medication_message }}
-    </div>
-   
-    {% endif %}-->
-    </div>
-    <!---->
+                    <!-- {% if medication_message %}
+                    <div class="medication-reminder mt-2">
+                        <strong>Medication Reminder</strong><br>
+                        {{ medication_message }}
+                    </div>
+                   
+                    {% endif %}-->
+                </div>
+                <!---->
 
 
 </div>

@@ -192,3 +192,6 @@ def register_user(username, email, password, role, doctor_data=None):
 
 
 
+
+
+

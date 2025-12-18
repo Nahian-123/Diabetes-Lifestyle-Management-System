@@ -8,7 +8,7 @@ import requests  # Added for Zoom API calls
 #import jwt  # Added for JWT token generation
 #import time
 import json
-
+import markdown, bleach #new line by angshy
 # # DeepFace for verification
 # from deepface import DeepFace
 
@@ -17,7 +17,7 @@ from models.user_model import login_user, register_user, validate_email
 
 from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment #last 3 imports by angshu
 from models.user_model import login_user, register_user, validate_email
-from models.doctor_model import get_doctor_name, get_doctor_notices 
+from models.doctor_model import get_doctor_name, get_doctor_notices, update_doctor_profile #new line by angshu
 from models.admin_model import insert_notice,get_dashboard_stats
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
@@ -26,7 +26,7 @@ from models.appointment_model import get_latest_appointment  # Angshu M2 appoint
 # from google.oauth2.credentials import Credentials
 # from google_auth_oauthlib.flow import Flow
 import os
-
+from models.ai_assistant_model import get_llama_response #new line by angshu
 # Google Calendar API Setup
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
 CLIENT_SECRETS_FILE = "client_secret.json"
@@ -168,6 +168,10 @@ def login():
 
 
     return render_template('login.html')
+
+
+
+
 
 
 
@@ -362,7 +366,7 @@ def update_schedule():
     #HANDLE NEW DOCTOR (no schedule yet)
     if schedule["day1"] is None: #then all others are None bc required fields
             return render_template(
-                "doctor_schedule_updatedversion1.html",
+                "doctor_schedule.html",
                 schedule=schedule,
                 slots=slots,
                 day1_times="",
@@ -465,6 +469,30 @@ def doctor_appointments():
 
         update_appointment_status(app_id, d_id, action)
 
+        #==========NAHIIAN M3 starts===========       
+        # Fetch appointment details
+        appointment = get_appointment_details(app_id)
+        print("DEBUG APPOINTMENT:", appointment)
+
+        patient_email = appointment['patient_email']
+        patient_name = appointment['patient_name']
+        doctor_name = appointment['doctor_name']
+        appointment_type = appointment.get("appointment_type")  # telemedicine 
+        appointment_date = appointment.get("date")
+
+        # ------------------------------------------
+        # EMAIL SENDING FOR ALL ACTIONS
+        # ------------------------------------------
+        if action == "Reschedule":
+            send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, "requested for reschedule")
+
+        elif action == "Confirm":
+            send_appointment_email(app_id,appointment_date, patient_email, patient_name, doctor_name, "Confirmed", appointment_type)
+
+        elif action == "Cancel":
+            send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, "Cancelled")
+        #==========NAHIIAN M3 ends===========
+
         if action == "Confirm":
             # Get appointment details
             from models.appointment_model import get_appointment_by_id
@@ -527,30 +555,31 @@ def doctor_appointments():
 from models.doctor_model import insert_prescription
 from models.patient_model import get_patient_name_glucose_info_update, get_latest_SMBG_routine
 
-@app.route('/doctor_prescriptions', methods=['GET', 'POST'])
-def doctor_prescriptions():
-    d_id= session['user_id']
-    if 'user_id' not in session:  #######Finally activate this
-        flash("Session timed out. Please login again.")
-        return redirect(url_for('login'))  # Add your login route
+#This is updated by Nahian in Nahian M3 prescriptions part
+# @app.route('/doctor_prescriptions', methods=['GET', 'POST'])
+# def doctor_prescriptions():
+#     d_id= session['user_id']
+#     if 'user_id' not in session:  #######Finally activate this
+#         flash("Session timed out. Please login again.")
+#         return redirect(url_for('login'))  # Add your login route
 
 
-    if request.method == 'POST':
-        p_id = request.form['p_id']
-        weekly_smbg = request.form['weekly_smbg']
-        date = datetime.today().strftime('%Y-%m-%d')
+#     if request.method == 'POST':
+#         p_id = request.form['p_id']
+#         weekly_smbg = request.form['weekly_smbg']
+#         date = datetime.today().strftime('%Y-%m-%d')
 
 
-        # if not check_patient_appointment(p_id, d_id):
-        #     flash("This patient doesn't have a confirmed appointment with you.", "warning")
-        #     return redirect(url_for('doctor_prescriptions'))
+#         # if not check_patient_appointment(p_id, d_id):
+#         #     flash("This patient doesn't have a confirmed appointment with you.", "warning")
+#         #     return redirect(url_for('doctor_prescriptions'))
        
-        insert_prescription(p_id, d_id, date, weekly_smbg)
-        flash('Prescription added successfully!', 'success')
-        return redirect(url_for('doctor_prescriptions'))
+#         insert_prescription(p_id, d_id, date, weekly_smbg)
+#         flash('Prescription added successfully!', 'success')
+#         return redirect(url_for('doctor_prescriptions'))
 
 
-    return render_template('doctor_prescriptions.html',d_id=d_id)
+#     return render_template('doctor_prescriptions.html',d_id=d_id)
 
 @app.route('/patient_dashboard', endpoint='patient_dashboard')
 def patient_dashboard():
@@ -560,6 +589,7 @@ def patient_dashboard():
 
     p_id = session['user_id']
     patient = get_patient_name_glucose_info_update(p_id)
+    medication_messages = get_time_based_medication_reminder(p_id) #new line by angshu
     if not patient:
         return "Patient not found", 404
 
@@ -573,7 +603,7 @@ def patient_dashboard():
     # SMBG Routine
     prescriptions= get_latest_SMBG_routine(p_id)
     smbg_routine_details = {}
-
+    notices= get_patient_notices(p_id) #new line by angshu
     # Find first non-null weekly_smbg
     for entry in prescriptions:
         if entry["weekly_smbg"] is not None:
@@ -602,15 +632,15 @@ def patient_dashboard():
         p_id=p_id,
         updated_on=patient['updated_on'],
         glucose_data=glucose_data,
-       
+        medication_message=medication_messages, #new line by angshu
         smbg_status=smbg_routine_details["status"],
         weekly_smbg=smbg_routine_details.get("weekly_smbg"),
         doctor_name=smbg_routine_details.get("doctor_name"),
         smbg_date=smbg_routine_details.get("date"),
         zoom_meeting_link=zoom_meeting_link,
         zoom_meeting_id=zoom_meeting_id,
-        zoom_password=zoom_password
-        )  
+        zoom_password=zoom_password,
+        notices=notices) #new line by angshu  
 
 #==========LABIBA M1 ends=====================================================================
 
@@ -1284,8 +1314,207 @@ def patient_upcoming_appointments():
 #============================================
 
 
-from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors, get_doctor_reviews, get_review_by_id, update_review
+#==NAHIAN m3================= Prescription for Doctor + Patient ==============
+#updated prescription with patient search
+from datetime import datetime
+from models.prescription_model import get_all_doctor_previous_prescriptions,search_patient_for_prescription, get_patient_info_for_prescription, get_doctor_info_for_prescription, insert_prescription, get_prescriptions_by_patient, get_patient_prescription, get_doctor_name_for_each_prescription, get_prescription_by_id
 
+@app.route('/doctor_all_previous_prescriptions')
+def doctor_all_previous_prescriptions():
+  # Ensure doctor is logged in
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.", "error")
+        return redirect(url_for('login'))
+
+    d_id = session['user_id']
+    prescriptions = get_all_doctor_previous_prescriptions(d_id)
+    # if not prescriptions:
+    #     flash("No prescriptions found.", "error")
+    #     return redirect(url_for('doctor_dashboard'))
+    return render_template('doctor_all_previous_prescriptions.html', prescriptions=prescriptions, d_id=d_id)
+
+@app.route('/doctor_prescriptions', methods=['GET', 'POST'])
+def doctor_prescriptions():
+    # Ensure doctor is logged in
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.", "error")
+        return redirect(url_for('login'))
+
+    d_id = session['user_id']
+    patient = None  # to hold searched patient info
+
+    # -------------------------
+    # 1️⃣ PATIENT SEARCH (search_patient button)
+    # -------------------------
+    if request.method == 'POST' and 'search_patient' in request.form:
+        p_id = request.form.get('p_id')
+        
+        # Validation1: ensure patient exists
+        patient = search_patient_for_prescription(p_id)
+        if not patient:
+            flash("No patient with this ID exists.", "error")
+            return redirect(url_for('doctor_prescriptions', d_id=d_id))
+        
+        
+        patient = get_patient_info_for_prescription(d_id, p_id)
+        # Validation2: ensure this patient has an appointment with this doctor
+        if not patient:
+            flash("This patient does not have any appointment with you.", "error")
+            return redirect(url_for('doctor_prescriptions', d_id=d_id))
+        # Validation3: ensure doctor confirmed this patient's appointment
+        if patient['confirmation'] != 1:
+            flash("This patient does not have a confirmed appointment with you.", "error")
+            return redirect(url_for('doctor_prescriptions', d_id=d_id))
+        # Validation4: ensure this appointment is not yet checked
+        if patient['checked'] == 1:
+            flash("This patient's appointment has already been marked as checked.", "error")
+            return redirect(url_for('doctor_prescriptions', d_id=d_id))
+        
+        # Fetch doctor info for the prescription page
+        doctor = get_doctor_info_for_prescription(d_id)
+        for i in doctor:
+            if doctor[i] is None:
+                doctor[i] = "Not Updated Yet"
+
+        current_date = datetime.today().strftime('%Y-%m-%d')
+
+        # Render page WITH patient data
+        return render_template('doctor_prescriptions.html', patient=patient, doctor=doctor, current_date=current_date, d_id=d_id)
+
+
+    # -------------------------
+    # 2️⃣ ADD PRESCRIPTION (submit_prescription button)
+    # -------------------------
+    if request.method == 'POST' and 'submit_prescription' in request.form:
+
+        p_id = request.form.get('p_id')
+        detail = request.form.get('detail')
+        morning = request.form.get('morning')
+        afternoon = request.form.get('afternoon')
+        night = request.form.get('night')
+        date = datetime.today().strftime('%Y-%m-%d')
+        weekly_smbg = request.form.get('weekly_smbg')
+
+        # Insert prescription
+        insert_prescription(p_id, d_id, detail, date, morning, afternoon, night, weekly_smbg)
+
+        flash("Prescription added successfully!", "success")
+        return redirect(url_for('doctor_prescriptions'))
+
+    # -------------------------
+    # 3️⃣ DEFAULT: no search, show empty page
+    # -------------------------
+    return render_template('doctor_prescriptions.html', patient=patient, d_id=d_id)
+
+@app.route('/previous_prescriptions/<int:p_id>')
+def previous_prescriptions(p_id):
+    prescriptions = get_prescriptions_by_patient(p_id)
+    return render_template('doctor_view_prescription_list.html', prescriptions=prescriptions, p_id=p_id)
+#================
+
+
+@app.route('/my_prescription')
+def my_prescription():
+
+    p_id= session['user_id']
+ 
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))  
+
+   
+    prescriptions = get_patient_prescription(p_id)
+    print(prescriptions)
+
+    # Fetch doctor names for each prescription
+    for prescription in prescriptions:
+        doctor = get_doctor_name_for_each_prescription(prescription)
+        prescription['doctor_name'] = doctor['name'] if doctor else 'Unknown Doctor'
+    return render_template('my_prescription.html', prescriptions=prescriptions)
+
+
+
+@app.route('/patient_prescription_details/<int:pres_id>')
+def patient_prescription_details(pres_id):
+    # Fetch the prescription
+    prescription = get_prescription_by_id(pres_id)  
+
+    if not prescription:
+        return "Prescription not found", 404
+    p_id = prescription['p_id']
+    d_id = prescription['d_id']
+    patient = get_patient_info_for_prescription(p_id, d_id)  
+    
+    # Fetch doctor info
+    doctor = get_doctor_info_for_prescription(d_id)
+    for i in doctor:
+            if doctor[i] is None:
+                doctor[i] = "Not Updated Yet"
+
+    current_date = datetime.today().strftime('%Y-%m-%d')
+    return render_template('patient_prescription_details.html', prescription=prescription, doctor=doctor, patient=patient, current_date=current_date)
+
+
+#======NAHIAN M3 (prescription)ends=============================================================================
+
+#======NAHIAN M3 (MAIL) starts=============================================================================
+# -------------------------
+# MAIL CONFIG
+# -------------------------
+from flask_mail import Mail, Message
+from models.doctor_model import get_appointment_details #WITH MAIL
+
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
+app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
+app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
+
+mail = Mail(app)
+
+def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
+    
+    if action == "Confirmed" and appointment_type == "telemedicine":
+        subject = f"Appintment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
+        body = (
+            f"Hello {patient_name},\n\n"
+            f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
+            f"To complete and confirm your appointment, please make the online payment of 1000 BDT in out website: \n"
+            f"http://127.0.0.1:5000/ \n"
+            f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
+        )
+
+    else:
+       subject = f"Appintment ID- {app_id}: Your Appointment Has Been {action}"
+
+       # Default email body
+       body = (
+           f"Hello {patient_name},\n\n"
+           f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
+        )
+
+
+    body += "\nIf you need any help, feel free to contact us.\nThank you."
+
+    msg = Message(subject, recipients=[patient_email])
+    msg.body = body
+
+    try:
+        mail.send(msg)
+        print(f"{action} email sent.")
+        return True
+    except Exception as e:
+        print("Email error:", e)
+        return False
+
+#Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.      
+#======NAHIAN M3 (MAIL) ends============================================================================
+
+
+
+from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors,get_doctor_reviews
 # Adi integrated - Doctor review system
 @app.route('/write_review', methods=['GET', 'POST'])
 def write_review():
@@ -1325,36 +1554,6 @@ def write_review():
     
     reviewable_doctors = get_reviewable_doctors(p_id)
     return render_template('write_review.html', doctors=reviewable_doctors)
-
-@app.route('/edit_review/<int:review_id>', methods=['GET', 'POST'])
-@login_required
-def edit_review_route(review_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    p_id = session['user_id']
-    
-    # Check ownership
-    review = get_review_by_id(review_id)
-    if not review or review['p_id'] != p_id:
-        flash("Review not found or access denied.", "error")
-        return redirect(url_for('my_reviews'))
-
-    if request.method == 'POST':
-        rating = request.form.get('rating')
-        comment = request.form.get('comment')
-        
-        if not rating:
-            flash("Rating is required", "error")
-        else:
-            result = update_review(review_id, rating, comment)
-            if result['success']:
-                flash("Review updated successfully!", "success")
-                return redirect(url_for('my_reviews'))
-            else:
-                flash(result['message'], "error")
-
-    return render_template('edit_review.html', review=review)
 
 # Adi integrated - View patient's own reviews
 @app.route('/my_reviews')
@@ -1399,8 +1598,73 @@ def doctor_reviews():
     review_data = get_doctor_reviews(d_id)
     return render_template('doctor_reviews.html', review_data=review_data)
 
+#================M3+M4 Angshu starts===========================
+@app.route('/ai_assistant', methods=['GET', 'POST'])
+def ai_assistant():
+    # 1. Authentication Check (Common for both)
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    # 2. Handle Chat Logic (POST request from JavaScript)
+    if request.method == 'POST':
+        data = request.get_json()
+        
+        if not data or 'prompt' not in data:
+            return jsonify({"success": False, "message": "Missing 'prompt' in request body"}), 400
 
+        user_prompt = data['prompt']
+        
+        # Call the model
+        result = get_llama_response(user_prompt)
+        
+        # Handle Model Error
+        if result['status'] == 'error':
+            return jsonify({
+                "success": False, 
+                "message": result['payload'] 
+            })
 
+        # Handle Model Success
+        elif result['status'] == 'success':
+            raw_response = result['payload']
+            
+            # Convert Markdown to HTML & Sanitize
+            html_response = markdown.markdown(raw_response)
+            allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ['p', 'br', 'h1', 'h2', 'h3', 'strong', 'em', 'pre', 'code', 'ul', 'ol', 'li']
+            clean_html_response = bleach.clean(html_response, tags=allowed_tags)
+            
+            return jsonify({
+                "success": True,
+                "response": clean_html_response,
+                "raw_text": raw_response
+            })
+
+    # 3. Handle Page Load (GET request)
+    return render_template('ai_assistant.html', p_id=session['user_id'])
+
+@app.route('/update_doctor_profile', methods=['GET', 'POST'], endpoint='update_doctor_profile')
+def update_doctor_profile_route():
+    d_id= session['user_id']
+    if 'user_id' not in session:  
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))  
+    
+    if request.method == 'POST':
+        designation = request.form['designation']
+        phone = request.form['phone']
+        location = request.form['location']
+
+        update_doctor_profile(d_id, designation, phone, location)
+        flash("Doctor profile updated successfully")
+        return redirect(url_for('doctor_dashboard'))
+
+    doctor = get_doctor_by_id(d_id)
+    if doctor:
+        return render_template('update_doctor_profile.html', doctor=doctor)
+    else:
+        flash("No data found for this patient.")
+        return 'Doctor not found', 404
+
+#---------------Ansghu m3+m4 ends----------------------------
 
 
 #############################################

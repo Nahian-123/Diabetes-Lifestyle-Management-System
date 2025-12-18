@@ -2,106 +2,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Prescription</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .sidebar-sticky {
-            padding-top: 20px;
-            height: 100vh;
-            background-color: #f8f9fa;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Prescription</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- for search icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+
+<style>
+    /* --- COPY FROM DASHBOARD --- */
+    .sidebar-sticky {
+        padding-top: 20px;
+        height: 100vh;
+        background-color: #f8f9fa;
+    }
+
+    .sidebar-logo-img {
+        width: 150px;          /* adjust size as needed */
+        height: 150px;         /* must be equal to width */
+        object-fit: cover;     /* crops the image to fill the circle */
+        border-radius: 50%;    /* makes it a circle */
+        border: 3px solid #007bff; /* optional: add blue border */
+    }
+
+    .sidebar-sticky .nav-link {
+        font-size: 16px;
+        font-weight: bold;
+        padding: 10px 20px;
+        margin-bottom: 10px;
+        color: #333;
+        background-color: #8b99aa;
+        border-radius: 8px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .sidebar-sticky .nav-link:hover {
+        background-color: #007bff;
+        color: #fff;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar-sticky .nav-link.active {
+        background-color: #007bff;
+        color: white;
+    }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6ff;
+        margin: 20px;
+    }
+    h2 {
+        text-align: center;
+        color: #575757;
+        margin-bottom: 30px;
+    }
+
+    h6 {
+        color: #5e5e5e;
+    }
+
+    .flash-box {
+        position: fixed;
+        top: 15px;
+        left: 90%;
+        transform: translateX(-50%);
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        opacity: 0;
+        z-index: 9999;
+        animation: fadeInOut 5s ease-in-out forwards;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .flash-success { background-color: #28a745; }
+    .flash-error { background-color: #dc3545; }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    
+    /* prescription image */
+    .prescription-details-wrapper {
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+    }
+
+    .prescription-image {
+        flex: 0 0 220px; /* fixed left width */
+        text-align: center;
+    }
+
+    .prescription-image img {
+        width: 50%;
+        max-width: 220px;
+        border-radius: 12px;
+    }
+
+    .prescription-content {
+        flex: 1;
+    }
+
+    /* Responsive: stack on small screens */
+    @media (max-width: 768px) {
+        .prescription-details-wrapper {
+            flex-direction: column;
+            align-items: center;
         }
 
-
-        .sidebar-logo-img {
-            width: 150px;          /* adjust size as needed */
-            height: 150px;         /* must be equal to width */
-            object-fit: cover;     /* crops the image to fill the circle */
-            border-radius: 50%;    /* makes it a circle */
-            border: 3px solid #007bff; /* optional: add blue border */
+        .prescription-image {
+            margin-bottom: 20px;
         }
+    }
+
+    .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .info-card, .med-card, .search-card {
+        background: #ffffff;
+        border: 1px solid #dce3eb;
+        border-radius: 10px;
+        padding: 20px;
+        width: 80%;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .info-card:hover, .search-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+        /* background-color: rgba(0,123,255,0.1); */
+        cursor: pointer;
+    }
+
+    .morning-card {
+        width: 100%;
+        background: #f0f5fc !important;  /* soft light orange */
+        /* color: #5a98fc */
+    }
+
+    .afternoon-card {
+        width: 100%;
+        background: #f0f5fc !important;  /* soft light orange */
+        /* color: #5a98fc */
+    }
+
+    .night-card {
+        width: 100%;
+        background: #f0f5fc !important;  /* soft light orange */
+        /* s */
+    }
+
+    .details-card {
+        width: 100%;
+        background: #e7e7e7 !important;  /* light beige */
+    }
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+    }
+
+    textarea, input, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        background: #f3f3f3;
+        border: 1px solid #dce3eb;
+    }
+
+    .morning-card textarea,
+    .afternoon-card textarea,
+    .night-card textarea {
+        background: #ffffff !important;
+    }
 
 
-        .sidebar-sticky .nav-link {
-            font-size: 16px;
-            font-weight: bold;
-            padding: 10px 20px;
-            margin-bottom: 10px;
-            color: #333;
-            background-color: #8b99aa;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
+    button {
+        background-color: #000;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+    }
 
+    button:hover { opacity: 0.7; }
 
-        .sidebar-sticky .nav-link:hover {
-            background-color: #007bff;
-            color: #fff;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    /* new */
+    .doctor-info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        font-size: 14px;
+    }
 
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #444;
+    }
 
-        .sidebar-sticky .nav-link.active {
-            background-color: #007bff;
-            color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    .info-item i {
+        color: #444;
+        font-size: 18px;
+    }
 
+    .caution-bar { 
+        width: 100%; 
+        background: #fff8e6; 
+        border-left: 5px solid #f4c430; }
 
-        .sidebar-sticky .nav-link i {
-            margin-right: 8px;
-        }
+    .clinic-info i,.clinic-meta i {
+        margin-right: 6px;
+        opacity: 0.9;
+    }
 
+    .clinic-meta p {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+    }
 
-        .main-content {
-            /* background-color: rgba(0, 123, 255, 0.1); */
-            padding: 20px;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f4f6ff;
-        }
+    .prescription-header {
+        background: linear-gradient(90deg, #2c54cb, #4b73e6);
+        color: #ffffff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
 
-        .white-box {
-            background-color: white;
-            padding: 10px;
-            margin-top: 10px;
-            text-align: center;
-        }
-
-
-
-        .flash-box {
-            padding: 10px 20px;
-            margin: 15px 0;
-            text-align: center;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: opacity 0.5s ease;
-        }
-        .flash-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .flash-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
+</style>
 </head>
 
-
-
-
 <body>
+
 <div class="container-fluid">
     <div class="row">
         
@@ -125,7 +283,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('doctor_dashboard') }}">
+                        <a class="nav-link" href="{{ url_for('update_doctor_profile') }}">
                             <i class="bi bi-person-fill"></i> Update Profile
                         </a>
                     </li>
@@ -142,6 +300,12 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ url_for('doctor_prescriptions') }}">
                             <i class="bi bi-file-text-fill"></i> Write Prescription
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('doctor_all_previous_prescriptions') }}">
+                            <i class="bi bi-list-task"></i> View Prescriptions
                         </a>
                     </li>
 
@@ -175,56 +339,207 @@
                 <p class="doctor-id text-center">Your ID: {{ d_id }}</p>
             </div>
 
-            <!-- Flash Message -->
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div id="flash-message" class="flash-box">
-                        {{ messages[0] }}
-                    </div>
-                {% endif %}
-            {% endwith %}
+<!-- FLASH MESSAGE -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div id="flash-message" class="flash-box {{ 'flash-success' if 'success' in messages[0].lower() else 'flash-error' }}">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+{% endwith %}
 
-            <!-- Prescription Form -->
-            <div class="col-md-8">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="p_id" class="form-label">Patient ID</label>
-                        <input type="text" class="form-control" id="p_id" name="p_id" required>
-                    </div>
+<!-- <h2 class="page-title">Electronic Prescription</h2> -->
 
-                    <div class="mb-3">
-                        <label for="weekly_smbg" class="form-label">Weekly Number of times for SMBG</label>
-                        <textarea class="form-control" id="weekly_smbg" name="weekly_smbg" rows="2" required></textarea>
-                    </div>
+<div class="card-container">
+    <!-- Patient Search Card -->
+    <form method="POST" class="search-card" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Headers -->
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+            <h4><i class="fas fa-search"></i> Patient Lookup</h4>
+            <h6>Enter Patient ID to fetch patient information</h6>
+        </div>
 
-                    <button type="submit" class="btn btn-primary">Submit Prescription</button>
-                </form>
-            </div>
+        <!-- Input + Button -->
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" name="p_id" id="p_id" placeholder="e.g., 1" value="{{ request.form.get('p_id', '') }}" required style="flex:5;">
+            <button type="submit" name="search_patient" style="flex:1;">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+    </form>
 
-        </main>
+    <!-- Patient Info Card -->
+    {% if patient %}
+    <div class="info-card">
+        <!-- Headers -->
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+        <h4><i class="fas fa-user-circle"></i> Patient Information</h4>
+        <h6>Auto-fetched from patient portal</h6>
+        </div>
+        <br>
+        <p><strong>Name:</strong> {{ patient.name }}</p>
+        <p><strong>Age:</strong> {{ patient.age }}</p>
+        <p><strong>Appointment ID:</strong> {{ patient.app_id }}</p>
+        <p><strong>Weight:</strong> {{ patient.weight }} kg</p>
+        <p><strong>Glucose Before Breakfast:</strong> {{ patient.gl_b_breakfast }}</p>
+        <p><strong>Glucose Before Lunch:</strong> {{ patient.gl_b_lunch }}</p>
+        <p><strong>Glucose Before Dinner:</strong> {{ patient.gl_b_dinner }}</p>
+        <p><strong>Appointment Type:</strong> {{ patient.appointment_type }}</p>
+
+        <p> 
+            <a href="{{ url_for('previous_prescriptions', p_id=patient.p_id) }}"
+            target="_blank"
+            class="btn btn-sm btn-outline-primary" 
+            style="margin-top: 10px;">
+             <i class="fas fa-up-right-from-square"></i>    Show Previous Prescriptions
+            </a>
+        </p>
+
     </div>
+
+    <!-- Prescription Form Cards -->
+<!-- Prescription Container (ONE BIG CARD) -->
+    <div class="info-card" style="background: white;">
+        <div class="prescription-header">
+                <!-- ⭐ Logo Section START -->
+                <div class="sidebar-logo text-center my-3">
+                    <img src="{{ url_for('static', filename='DLMS logo.png') }}"
+                        class="img-fluid sidebar-logo-img"
+                        alt="Logo">
+                    <h5 class="mt-2 fw-bold">DLMS</h5>
+                </div>
+                <!-- ⭐ Logo Section END -->
+    
+        <!-- RIGHT: System Info -->
+        <div class="clinic-info d-flex flex-column">
+            <h4 class="mb-1">Diabetes Lifestyle Management System</h4>
+
+            <p class="mb-0">
+                <i class="fas fa-envelope"></i> dlms@healthcare.com
+            </p>
+
+            <p class="mb-0">
+                <i class="fas fa-phone"></i> +880 1755012345
+            </p>
+        </div>
+
+
+        </div>
+
+    <div class="doctor-info-bar" style="display: flex; gap: 50px; flex-wrap: wrap; background: #f8f9fa; padding: 15px 20px; border-radius: 8px;">
+    
+    <!-- Column 1: Date, Name, Email -->
+    <div style="flex:1; display:flex; flex-direction: column; gap:10px;">
+        <div class="info-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span><strong>Date:</strong> {{ current_date }}</span>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-user-md"></i>
+            <span><strong>Doctor:</strong> Dr. {{ doctor.name }}</span>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <span><strong>Email:</strong> {{ doctor.email }}</span>
+        </div>
+    </div>
+
+    <!-- Column 2: Designation, Location -->
+    <div style="flex:1; display:flex; flex-direction: column; gap:10px;">
+        <div class="info-item">
+            <i class="fa-solid fa-arrows-turn-to-dots"></i>
+            <span><strong>Designation:</strong> {{ doctor.designation }}</span>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span><strong>Location:</strong> {{ doctor.location }}</span>
+        </div>
+    </div>
+
+</div>
+    
+<!-- Prescription Details with LEFT image --> <div class="prescription-details-wrapper" style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;"> 
+    <!-- LEFT: Image --> 
+    <div class="prescription-image" style="flex:0 0 200px; text-align:center;"> 
+        <img src="{{ url_for('static', filename='prescription.png') }}" 
+        alt="Prescription Illustration" 
+        style="height: 70px;">
+        <!-- style="width:100%; max-width:200px; border-radius:12px;">  -->
+    </div> 
+    <!-- RIGHT: Prescription Content --> 
+    <div class="prescription-content" style="flex:1; min-width:250px;">
+    
+    <h4>Prescription Details</h4>
+    <h6>Input medications for morning, afternoon, and night</h6>
+    </div>
+
+    <form method="POST" style="margin-top: 20px; width:100%">
+        <input type="hidden" name="p_id" value="{{ patient.p_id }}">
+
+        <!-- Morning -->
+        <div class="med-card morning-card">
+            <label for="morning">
+                <i class="fas fa-sun"></i> Morning Medications
+            </label>
+            <textarea id="morning" name="morning" rows="3" placeholder="e.g., Metformin 500mg - Take after breakfast" required></textarea>
+        </div>
+        <br>
+
+        <!-- Afternoon -->
+        <div class="med-card afternoon-card">
+            <label for="afternoon">
+                <i class="fas fa-cloud-sun"></i> Afternoon Medications
+            </label>
+            <textarea id="afternoon" name="afternoon" rows="3" placeholder="e.g., Insulin 10ml - Take before lunch" required></textarea>
+        </div>
+        <br>
+
+        <!-- Night -->
+        <div class="med-card night-card">
+            <label for="night">
+                <i class="fas fa-moon"></i> Night Medications
+            </label>
+            <textarea id="night" name="night" rows="3" placeholder="e.g., Insulin 20ml - Take before dinner" required></textarea>
+        </div>
+        <br>
+        
+        <!-- SMBG -->
+        <div class="med-card details-card">
+            <label for="detail">
+                <i class="fas fa-chart-line"></i> Weekly Number of times for SMBG
+            </label>
+            <textarea id="weekly_smbg" name="weekly_smbg" rows="2" placeholder="e.g., 3" required></textarea>
+        </div>
+        <br>
+
+        <!-- Additional Details -->
+        <div class="med-card details-card">
+            <label for="detail">
+                <i class="fas fa-notes-medical"></i> Additional Prescription Details
+            </label>
+            <textarea id="detail" name="detail" rows="4" placeholder="e.g., Monitor blood sugar levels daily"></textarea>
+        </div>
+        <br>
+        <br>
+
+        <div style="width: 100%; text-align: center;">
+            <button type="submit" name="submit_prescription">Submit Prescription</button>
+        </div>
+
+        <!-- Caution -->
+        <div class="med-card caution-bar">
+            <p style="margin:0; font-size:14px; line-height:1.6;">
+                <strong>Important:</strong> Please follow the prescribed dosages exactly as directed.
+                Contact your physician immediately if you experience any adverse reactions.
+                Keep all medications out of reach of children.
+            </p>
+        </div>
+        <br>
+
+    </form>
 </div>
 
-<!-- Flash Animation Script (unchanged) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    window.onload = function () {
-        const flashBox = document.getElementById('flash-message');
-        if (flashBox) {
-            const msg = flashBox.textContent.toLowerCase();
-            if (msg.includes('success')) {
-                flashBox.classList.add('flash-success');
-            } else {
-                flashBox.classList.add('flash-error');
-            }
+{% endif %} 
 
-            setTimeout(() => {
-                flashBox.style.opacity = '0';
-                setTimeout(() => flashBox.remove(), 500);
-            }, 3000);
-        }
-    }
-</script>
 </body>
 </html>
-
