@@ -366,7 +366,7 @@ def update_schedule():
     #HANDLE NEW DOCTOR (no schedule yet)
     if schedule["day1"] is None: #then all others are None bc required fields
             return render_template(
-                "doctor_schedule_updatedversion1.html",
+                "doctor_schedule.html",
                 schedule=schedule,
                 slots=slots,
                 day1_times="",
