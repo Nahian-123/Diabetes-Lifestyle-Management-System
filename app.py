@@ -1509,8 +1509,93 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
         return False
 
 #Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.      
-#======NAHIAN M3 (MAIL) ends=============================================================================
+#======NAHIAN M3 (MAIL) ends============================================================================
 
+
+
+from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors,get_doctor_reviews
+# Adi integrated - Doctor review system
+@app.route('/write_review', methods=['GET', 'POST'])
+def write_review():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    
+    if request.method == 'POST':
+        d_id = request.form.get('d_id')
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        if not d_id or not rating:
+            flash("Doctor and rating are required", "error")
+            return redirect(url_for('write_review'))
+        
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                flash("Rating must be between 1 and 5", "error")
+                return redirect(url_for('write_review'))
+        except ValueError:
+            flash("Invalid rating value", "error")
+            return redirect(url_for('write_review'))
+        
+        result = add_review(p_id, d_id, rating, comment)
+        
+        if result['success']:
+            flash(result['message'], "success")
+            return redirect(url_for('my_reviews'))
+        else:
+            flash(result['message'], "error")
+            return redirect(url_for('write_review'))
+    
+    
+    reviewable_doctors = get_reviewable_doctors(p_id)
+    return render_template('write_review.html', doctors=reviewable_doctors)
+
+# Adi integrated - View patient's own reviews
+@app.route('/my_reviews')
+def my_reviews():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    reviews = get_patient_reviews(p_id)
+    return render_template('my_reviews.html', reviews=reviews)
+
+# Adi integrated - Delete review
+@app.route('/delete_review/<int:review_id>', methods=['POST'])
+def delete_review_route(review_id):
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    result = delete_review(review_id, p_id)
+    
+    if result['success']:
+        flash(result['message'], "success")
+    else:
+        flash(result['message'], "error")
+    
+    return redirect(url_for('my_reviews'))
+
+# Adi integrated - Doctor view of their reviews
+@app.route('/doctor_reviews')
+def doctor_reviews():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    if session['role'] != 'doctor':
+        flash("Access denied", "error")
+        return redirect(url_for('index'))
+    
+    d_id = session['user_id']
+    review_data = get_doctor_reviews(d_id)
+    return render_template('doctor_reviews.html', review_data=review_data)
 
 
 #############################################
