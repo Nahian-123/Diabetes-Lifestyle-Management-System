@@ -68,7 +68,7 @@ def index():
 
 
 
-from models.user_model import login_user, register_user, validate_email
+from models.user_model import login_user, register_user, validate_email, verify_otp
 #############################################
 # REGISTER ROUTE  - SIMPLIFIED (no extra field needed)
 #############################################
@@ -98,6 +98,10 @@ def register():
         result = register_user(username, email, password, role)
        
         if result['success']:
+            if result.get('redirect_otp'):
+                 flash(result['message'], 'info')
+                 return render_template('verify_account.html', email=result.get('email'))
+            
             flash(result['message'], 'success')
             return redirect(url_for('login'))
         else:
@@ -105,6 +109,20 @@ def register():
             return redirect(url_for('register'))
    
     return render_template('register.html')
+
+@app.route('/verify_account', methods=['POST'])
+def verify_account():
+    email = request.form.get('email')
+    otp = request.form.get('otp')
+    
+    result = verify_otp(email, otp)
+    
+    if result['success']:
+        flash(result['message'], 'success')
+        return redirect(url_for('login'))
+    else:
+        flash(result['message'], 'error')
+        return render_template('verify_account.html', email=email)
 
 
 
@@ -151,83 +169,9 @@ def login():
 
     return render_template('login.html')
 
-# ############################################################
-# # >>> NEW: FACE VERIFICATION PAGE <<< 
-# ############################################################
-# @app.route('/verify')
-# @login_required
-# def verify_face_page():
-#     if session.get('role') != 'doctor':
-#         return redirect(url_for('login'))
-#     return render_template("verify.html")
-
-# def get_doctor_image_path(doctor_id):
-#     UPLOAD_FOLDER = "uploads/doctors/"
-#     valid_ext = ["jpeg", "jpg", "png"]
-
-#     for ext in valid_ext:
-#         path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.{ext}")
-#         if os.path.exists(path):
-#             return path
-    
-#     return None
 
 
-# @app.post("/verify-face")
-# def verify_face_api():
 
-#     doctor_id = session.get("user_id")
-
-#     if not doctor_id:
-#         return jsonify({"match": False, "message": "Not logged in"})
-
-#     UPLOAD_FOLDER = "uploads/doctors/"
-#     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-#     data = request.json
-#     live_image = data["live_image"]
-
-#     stored_image_path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.jpg")
-
-#     if not os.path.exists(stored_image_path):
-#         print(f"[v0] ERROR: Doctor image not found at {stored_image_path}")
-#         return jsonify({"match": False, "message": f"Doctor photo not found. Expected at: {stored_image_path}"})
-
-#     # Convert base64 → actual file
-#     live_image = live_image.replace("data:image/jpg;base64,", "")
-#     live_bytes = base64.b64decode(live_image)
-
-#     live_path = "live_temp.jpg"
-#     with open(live_path, "wb") as f:
-#         f.write(live_bytes)
-
-#     # Perform face verification
-#     try:
-#         print(f"[v0] Comparing {stored_image_path} with {live_path}")
-#         result = DeepFace.verify(
-#         img1_path=stored_image_path,
-#         img2_path=live_path,
-#         model_name="VGG-Face",
-#         distance_metric="cosine",
-#         threshold=0.6,   # ← LOWER = strict, HIGHER = lenient
-#         enforce_detection=False
-#         )
-
-#         if result["verified"]:
-#             print(f"[v0] Face verified! Distance: {result['distance']}")
-#             os.remove(live_path)  # Clean up temp file
-#             flash("Face Verified Successfully!", "success")
-#             return jsonify({"match": True, "redirect": url_for("doctor_dashboard")})
-#         else:
-#             print(f"[v0] Face not matched. Distance: {result['distance']}")
-#             os.remove(live_path)  # Clean up temp file
-#             return jsonify({"match": False, "message": "Face does not match."})
-
-#     except Exception as e:
-#         print(f"[v0] Face detection error: {str(e)}")
-#         if os.path.exists(live_path):
-#             os.remove(live_path)
-#         return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
 
 
 
