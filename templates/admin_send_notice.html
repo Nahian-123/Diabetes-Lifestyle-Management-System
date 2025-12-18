@@ -1,0 +1,87 @@
+<!-- templates/admin_notice.html -->
+ <!--whole new by angshu-->
+{% extends 'base.html' %}
+{% block title %}Send Notice{% endblock %}
+{% block extra_css %}
+
+    <style>
+        
+        
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-send { background-color: #4CAF50; color: white; }
+        
+        .center {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+
+    </style>
+    {% endblock %}
+
+{% block content %}
+    <h1>Send Notice</h1>
+    <form action="{{ url_for('admin_send_notice') }}" method="POST">
+        <label>Send To:</label>
+        <select name="recipient_type" id="recipient_type" onchange="toggleRecipientInput()">
+            <option value="doctor">All Doctors</option>
+            <option value="patient">All Patients</option>
+            <option value="both">All Doctors & Patients</option>
+            <option value="specific_doctor">Specific Doctor</option>
+            <option value="specific_patient">Specific Patient</option>
+        </select>
+
+        <div id="recipient_id_container" style="display:none;">
+            <label>Enter Recipient ID:</label>
+            <input type="text" name="recipient_id" placeholder="Enter Doctor or Patient ID">
+        </div>
+
+        <label>Message:</label>
+        <textarea name="message" rows="4" required></textarea>
+
+        <button type="submit" class="btn-send">Send Notice</button>
+        
+    
+
+        
+
+    </form>
+{% endblock %}
+{% block extra_js %}
+    <script>
+        function toggleRecipientInput() {
+            const recipientType = document.getElementById("recipient_type").value;
+            const recipientField = document.getElementById("recipient_id_container");
+            if (recipientType === "specific_doctor" || recipientType === "specific_patient") {
+                recipientField.style.display = "block";
+            } else {
+                recipientField.style.display = "none";
+            }
+        }
+    </script>
+{% endblock %}

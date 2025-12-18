@@ -333,48 +333,51 @@ def create_notification_for_appointment_action(app_id, action):
 
     cursor.close()
     conn.close()
-#new code angshu
+#new code by angshu m3
 from datetime import datetime
-
 def get_time_based_medication_reminder(p_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-
-    # Get latest prescription for the patient
+    # Get latest prescription per distinct d_id for the patient
     cursor.execute("""
-        SELECT date, morning, afternoon, night
+        SELECT *
         FROM prescription
         WHERE p_id = %s
-        ORDER BY date DESC
-        LIMIT 1
-    """, (p_id,))
-    prescription = cursor.fetchone()
+        AND pres_id IN (
+            SELECT MAX(pres_id)
+            FROM prescription
+            WHERE p_id = %s
+            GROUP BY d_id
+        )
+    """, (p_id, p_id))
+    prescriptions = cursor.fetchall()
     cursor.close()
     conn.close()
-
-    if not prescription:
+    
+    if not prescriptions:
         return None  # No prescriptions found
-
+    
     # Determine current time slot
     now = datetime.now().time()
     hour = now.hour
-
     if 6 <= hour < 12:
         slot = 'morning'
     elif 12 <= hour < 18:
         slot = 'afternoon'
     else:
         slot = 'night'
-
-    message = prescription.get(slot)
-    date = prescription.get('date')
-
-    if message:
-        display = f"💊 {slot.capitalize()} Medication prescribed on ({date}): {message}"
-    else:
-        display = f"💊 {slot.capitalize()} Medication ({date}): You have no medication for this time."
-
-    return display
+    
+    messages = []
+    for prescription in prescriptions:
+        message = prescription.get(slot)
+        date = prescription.get('date')
+        if message:
+            display = f" -- {slot.capitalize()} Medication prescribed on ({date}): {message}"
+        else:
+            display = f" -- {slot.capitalize()} Medication ({date}): You have no medication for this time."
+        messages.append(display)
+    
+    return messages
 
 def get_food_sugar_level(food_item):
     conn = get_db_connection()
