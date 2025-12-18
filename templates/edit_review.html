@@ -1,0 +1,156 @@
+<!--ADITYA. EDIT REVIEW TEMPLATE -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Review</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/patient_dashboard.css') }}">
+    <style>
+        .rating-container {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .rating {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            position: relative;
+        }
+
+        .rating>input {
+            display: none;
+        }
+
+        .rating>label {
+            position: relative;
+            width: 1.1em;
+            font-size: 2.5em;
+            color: #ccc;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .rating>label::before {
+            content: "\2605";
+            position: absolute;
+            opacity: 1;
+        }
+
+        .rating>label:hover:before,
+        .rating>label:hover~label:before {
+            color: #FFD700;
+        }
+
+        .rating>input:checked~label:before {
+            color: #FFD700;
+        }
+
+        .rating:hover>input:checked~label:before {
+            color: #FFD700;
+            opacity: 0.4;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <div class="sidebar-logo text-center my-3">
+                        <img src="{{ url_for('static', filename='DLMS logo.png') }}" class="img-fluid sidebar-logo-img"
+                            alt="Logo">
+                        <h5 class="mt-2 fw-bold">DLMS</h5>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-grid-fill"></i> Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('my_reviews') }}"><i
+                                    class="bi bi-star-fill"></i> My Reviews</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>
+                                Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Edit Review</h1>
+                    <a href="{{ url_for('my_reviews') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Back to My Reviews
+                    </a>
+                </div>
+
+                <!-- Flash Message -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'error' else 'danger' }} text-center" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Review for Dr. {{ review.doctor_name }} ({{ review.designation }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+
+                            <div class="form-section rating-container">
+                                <label class="form-label d-block">Rating</label>
+                                <div class="rating">
+                                    <input type="radio" name="rating" value="5" id="rating-5" {% if review.rating==5
+                                        %}checked{% endif %} required>
+                                    <label for="rating-5" title="5 stars"></label>
+                                    <input type="radio" name="rating" value="4" id="rating-4" {% if review.rating==4
+                                        %}checked{% endif %}>
+                                    <label for="rating-4" title="4 stars"></label>
+                                    <input type="radio" name="rating" value="3" id="rating-3" {% if review.rating==3
+                                        %}checked{% endif %}>
+                                    <label for="rating-3" title="3 stars"></label>
+                                    <input type="radio" name="rating" value="2" id="rating-2" {% if review.rating==2
+                                        %}checked{% endif %}>
+                                    <label for="rating-2" title="2 stars"></label>
+                                    <input type="radio" name="rating" value="1" id="rating-1" {% if review.rating==1
+                                        %}checked{% endif %}>
+                                    <label for="rating-1" title="1 star"></label>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <label for="comment" class="form-label">Comment</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="4"
+                                    placeholder="Share your experience...">{{ review.comment }}</textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mt-3">Update Review</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

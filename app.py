@@ -22,9 +22,9 @@ from models.admin_model import insert_notice,get_dashboard_stats
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
 # For Google Calendar API
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
+# from googleapiclient.discovery import build
+# from google.oauth2.credentials import Credentials
+# from google_auth_oauthlib.flow import Flow
 import os
 
 # Google Calendar API Setup
@@ -68,7 +68,7 @@ def index():
 
 
 
-from models.user_model import login_user, register_user, validate_email
+from models.user_model import login_user, register_user, validate_email, verify_otp
 #############################################
 # REGISTER ROUTE  - SIMPLIFIED (no extra field needed)
 #############################################
@@ -98,6 +98,10 @@ def register():
         result = register_user(username, email, password, role)
        
         if result['success']:
+            if result.get('redirect_otp'):
+                 flash(result['message'], 'info')
+                 return render_template('verify_account.html', email=result.get('email'))
+            
             flash(result['message'], 'success')
             return redirect(url_for('login'))
         else:
@@ -105,6 +109,20 @@ def register():
             return redirect(url_for('register'))
    
     return render_template('register.html')
+
+@app.route('/verify_account', methods=['POST'])
+def verify_account():
+    email = request.form.get('email')
+    otp = request.form.get('otp')
+    
+    result = verify_otp(email, otp)
+    
+    if result['success']:
+        flash(result['message'], 'success')
+        return redirect(url_for('login'))
+    else:
+        flash(result['message'], 'error')
+        return render_template('verify_account.html', email=email)
 
 
 
@@ -150,84 +168,6 @@ def login():
 
 
     return render_template('login.html')
-
-# ############################################################
-# # >>> NEW: FACE VERIFICATION PAGE <<< 
-# ############################################################
-# @app.route('/verify')
-# @login_required
-# def verify_face_page():
-#     if session.get('role') != 'doctor':
-#         return redirect(url_for('login'))
-#     return render_template("verify.html")
-
-# def get_doctor_image_path(doctor_id):
-#     UPLOAD_FOLDER = "uploads/doctors/"
-#     valid_ext = ["jpeg", "jpg", "png"]
-
-#     for ext in valid_ext:
-#         path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.{ext}")
-#         if os.path.exists(path):
-#             return path
-    
-#     return None
-
-
-# @app.post("/verify-face")
-# def verify_face_api():
-
-#     doctor_id = session.get("user_id")
-
-#     if not doctor_id:
-#         return jsonify({"match": False, "message": "Not logged in"})
-
-#     UPLOAD_FOLDER = "uploads/doctors/"
-#     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-#     data = request.json
-#     live_image = data["live_image"]
-
-#     stored_image_path = os.path.join(UPLOAD_FOLDER, f"{doctor_id}.jpg")
-
-#     if not os.path.exists(stored_image_path):
-#         print(f"[v0] ERROR: Doctor image not found at {stored_image_path}")
-#         return jsonify({"match": False, "message": f"Doctor photo not found. Expected at: {stored_image_path}"})
-
-#     # Convert base64 → actual file
-#     live_image = live_image.replace("data:image/jpg;base64,", "")
-#     live_bytes = base64.b64decode(live_image)
-
-#     live_path = "live_temp.jpg"
-#     with open(live_path, "wb") as f:
-#         f.write(live_bytes)
-
-#     # Perform face verification
-#     try:
-#         print(f"[v0] Comparing {stored_image_path} with {live_path}")
-#         result = DeepFace.verify(
-#         img1_path=stored_image_path,
-#         img2_path=live_path,
-#         model_name="VGG-Face",
-#         distance_metric="cosine",
-#         threshold=0.6,   # ← LOWER = strict, HIGHER = lenient
-#         enforce_detection=False
-#         )
-
-#         if result["verified"]:
-#             print(f"[v0] Face verified! Distance: {result['distance']}")
-#             os.remove(live_path)  # Clean up temp file
-#             flash("Face Verified Successfully!", "success")
-#             return jsonify({"match": True, "redirect": url_for("doctor_dashboard")})
-#         else:
-#             print(f"[v0] Face not matched. Distance: {result['distance']}")
-#             os.remove(live_path)  # Clean up temp file
-#             return jsonify({"match": False, "message": "Face does not match."})
-
-#     except Exception as e:
-#         print(f"[v0] Face detection error: {str(e)}")
-#         if os.path.exists(live_path):
-#             os.remove(live_path)
-#         return jsonify({"match": False, "message": f"Face not detected. Error: {str(e)}"})
 
 
 
@@ -1344,12 +1284,189 @@ def patient_upcoming_appointments():
 #============================================
 
 
+from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors, get_doctor_reviews, get_review_by_id, update_review
+
+# Adi integrated - Doctor review system
+@app.route('/write_review', methods=['GET', 'POST'])
+def write_review():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    
+    if request.method == 'POST':
+        d_id = request.form.get('d_id')
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        if not d_id or not rating:
+            flash("Doctor and rating are required", "error")
+            return redirect(url_for('write_review'))
+        
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                flash("Rating must be between 1 and 5", "error")
+                return redirect(url_for('write_review'))
+        except ValueError:
+            flash("Invalid rating value", "error")
+            return redirect(url_for('write_review'))
+        
+        result = add_review(p_id, d_id, rating, comment)
+        
+        if result['success']:
+            flash(result['message'], "success")
+            return redirect(url_for('my_reviews'))
+        else:
+            flash(result['message'], "error")
+            return redirect(url_for('write_review'))
+    
+    
+    reviewable_doctors = get_reviewable_doctors(p_id)
+    return render_template('write_review.html', doctors=reviewable_doctors)
+
+@app.route('/edit_review/<int:review_id>', methods=['GET', 'POST'])
+@login_required
+def edit_review_route(review_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    
+    # Check ownership
+    review = get_review_by_id(review_id)
+    if not review or review['p_id'] != p_id:
+        flash("Review not found or access denied.", "error")
+        return redirect(url_for('my_reviews'))
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        if not rating:
+            flash("Rating is required", "error")
+        else:
+            result = update_review(review_id, rating, comment)
+            if result['success']:
+                flash("Review updated successfully!", "success")
+                return redirect(url_for('my_reviews'))
+            else:
+                flash(result['message'], "error")
+
+    return render_template('edit_review.html', review=review)
+
+# Adi integrated - View patient's own reviews
+@app.route('/my_reviews')
+def my_reviews():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    reviews = get_patient_reviews(p_id)
+    return render_template('my_reviews.html', reviews=reviews)
+
+# Adi integrated - Delete review
+@app.route('/delete_review/<int:review_id>', methods=['POST'])
+def delete_review_route(review_id):
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    result = delete_review(review_id, p_id)
+    
+    if result['success']:
+        flash(result['message'], "success")
+    else:
+        flash(result['message'], "error")
+    
+    return redirect(url_for('my_reviews'))
+
+# Adi integrated - Doctor view of their reviews
+@app.route('/doctor_reviews')
+def doctor_reviews():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+    
+    if session['role'] != 'doctor':
+        flash("Access denied", "error")
+        return redirect(url_for('index'))
+    
+    d_id = session['user_id']
+    review_data = get_doctor_reviews(d_id)
+    return render_template('doctor_reviews.html', review_data=review_data)
 
 
 
 
 
 #############################################
+# ...
+from models.urgent_care_model import request_ambulance, get_active_request, notify_family, add_emergency_contact, get_emergency_contacts, mark_ride_completed
+
+# ...
+
+@app.route('/urgent_care')
+@login_required
+def urgent_care():
+    if session.get('role') != 'patient':
+        flash('Access denied. Patients only.', 'error')
+        return redirect(url_for('login'))
+        
+    p_id = session['user_id']
+    active_req = get_active_request(p_id)
+    contacts = get_emergency_contacts(p_id)
+    
+    return render_template('urgent_care.html', active_request=active_req, contacts=contacts)
+
+@app.route('/api/request_ambulance', methods=['POST'])
+@login_required
+def api_request_ambulance():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'latitude' not in data or 'longitude' not in data:
+        return jsonify({'success': False, 'message': 'Invalid location data'})
+        
+    result = request_ambulance(p_id, data['latitude'], data['longitude'])
+    return jsonify(result)
+
+@app.route('/api/add_contact', methods=['POST'])
+@login_required
+def api_add_contact():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'name' not in data or 'contact_number' not in data:
+         return jsonify({'success': False, 'message': 'Missing data'})
+         
+    result = add_emergency_contact(p_id, data['name'], data['contact_number'], data.get('relation', 'Family'))
+    return jsonify(result)
+
+@app.route('/api/notify_family', methods=['POST'])
+@login_required
+def api_notify_family():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'latitude' not in data or 'longitude' not in data:
+        return jsonify({'success': False, 'message': 'Invalid location data'})
+    
+    recipients = data.get('recipients', 'all') # Default to 'all' if not specified
+        
+    result = notify_family(p_id, data['latitude'], data['longitude'], recipients)
+    return jsonify(result)
+
+@app.route('/api/complete_ride', methods=['POST'])
+@login_required
+def api_complete_ride():
+    p_id = session['user_id']
+    result = mark_ride_completed(p_id)
+    return jsonify(result)
+
 # LOGOUT
 @app.route('/logout')
 def logout():

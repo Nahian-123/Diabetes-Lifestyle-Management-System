@@ -1,0 +1,330 @@
+{% extends 'patient_base.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .emergency-btn {
+        font-size: 1.5rem;
+        padding: 15px 40px;
+    }
+
+    .status-card {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-danger fw-bold"><i class="bi bi-heart-pulse-fill"></i> 24/7 Urgent Care</h2>
+    <p class="lead">Emergency Ambulance Dispatch System</p>
+
+    <div class="row">
+        <!-- Map Section -->
+        <div class="col-md-8 mb-3">
+            <div id="map"></div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="col-md-4">
+            <!-- Panic Button -->
+            <div id="action-panel" class="card shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Need Help?</h5>
+                    <p class="text-muted">We will access your location and dispatch the nearest ambulance.</p>
+                    <button class="btn btn-danger emergency-btn rounded-pill pulse-animation" onclick="requestHelp()">
+                        <i class="bi bi-cone-striped"></i> CALL AMBULANCE
+                    </button>
+
+                    <hr>
+                    <p class="text-muted mt-3">Family Notification</p>
+
+                    <!-- Contact List -->
+                    <div class="list-group mb-3 text-start" style="max-height: 150px; overflow-y: auto;">
+                        {% if contacts %}
+                        {% for contact in contacts %}
+                        <label class="list-group-item">
+                            <input class="form-check-input me-1 contact-checkbox" type="checkbox"
+                                value="{{ contact.contact_number }}">
+                            {{ contact.name }} ({{ contact.relation }})
+                        </label>
+                        {% endfor %}
+                        {% else %}
+                        <p class="small text-muted text-center">No contacts added.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-warning rounded-pill" onclick="notifySelected()">
+                            <i class="bi bi-chat-dots-fill"></i> Notify Selected
+                        </button>
+                        <button class="btn btn-outline-warning rounded-pill" onclick="notifyAll()">
+                            Notify All
+                        </button>
+                        <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                            <i class="bi bi-plus-circle"></i> Add Contact
+                        </button>
+                    </div>
+
+                    <div id="loading" class="mt-3 text-info" style="display:none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Processing...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Panel (Hidden by default) -->
+            <div id="status-panel" class="card shadow border-danger status-card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🚑 Help is on the way!</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold">Ambulance Details:</h6>
+                    <p>Driver: <span id="driver-name">--</span></p>
+                    <p>Phone: <span id="driver-phone">--</span></p>
+                    <hr>
+                    <h6 class="fw-bold text-primary">ETA: <span id="eta-time">--</span> mins</h6>
+                    <p class="small text-muted">The ambulance is tracking your live location.</p>
+
+                    <button class="btn btn-success w-100 mt-2" onclick="completeRide()">
+                        <i class="bi bi-check-circle-fill"></i> Complete Ride / Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContactLabel">Add Emergency Contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addContactForm">
+                    <div class="mb-3">
+                        <label for="contactName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="contactName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contactPhone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="contactPhone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contactRelation" class="form-label">Relation</label>
+                        <input type="text" class="form-control" id="contactRelation" placeholder="e.g. Spouse, Parent">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addContact()">Save Contact</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Map
+    var map = L.map('map').setView([23.8103, 90.4125], 13); // Default Dhaka
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var patientMarker, ambulanceMarker;
+    var activeRequest = {{ active_request | tojson | safe }};
+
+    function init() {
+        if (activeRequest) {
+            showStatus(activeRequest);
+        } else {
+            // Try to get user location just for display
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            }
+        }
+    }
+
+    function showPosition(position) {
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
+        if (patientMarker) map.removeLayer(patientMarker);
+
+        patientMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("You are here").openPopup();
+        map.setView([lat, lon], 15);
+    }
+
+    function requestHelp() {
+        document.getElementById('loading').style.display = 'block';
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(sendRequest, showError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function sendRequest(position) {
+        var lat = position.coords.latitude;
+        var lon = position.coords.longitude;
+
+        fetch('/api/request_ambulance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lon })
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+    }
+
+    function addContact() {
+        const name = document.getElementById('contactName').value;
+        const phone = document.getElementById('contactPhone').value;
+        const relation = document.getElementById('contactRelation').value;
+
+        if (!name || !phone) {
+            alert("Name and Phone are required.");
+            return;
+        }
+
+        fetch('/api/add_contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, contact_number: phone, relation: relation })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Failed: " + data.message);
+                }
+            });
+    }
+
+    function notifyAll() {
+        sendNotification('all');
+    }
+
+    function notifySelected() {
+        const checkboxes = document.querySelectorAll('.contact-checkbox:checked');
+        const recipients = Array.from(checkboxes).map(cb => cb.value);
+
+        if (recipients.length === 0) {
+            alert("Please select at least one contact.");
+            return;
+        }
+        sendNotification(recipients);
+    }
+
+    function sendNotification(recipients) {
+        document.getElementById('loading').style.display = 'block';
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                var lat = pos.coords.latitude;
+                var lon = pos.coords.longitude;
+
+                fetch('/api/notify_family', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude: lat, longitude: lon, recipients: recipients })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('loading').style.display = 'none';
+                        if (data.success) {
+                            alert(data.message);
+                        } else {
+                            alert("Failed: " + data.message);
+                        }
+                    });
+            });
+        }
+    }
+
+    function completeRide() {
+        if (!confirm("Are you sure the ride is complete? This will reset the view.")) return;
+
+        document.getElementById('loading').style.display = 'block';
+        fetch('/api/complete_ride', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Failed: " + data.message);
+                    document.getElementById('loading').style.display = 'none';
+                }
+            });
+    }
+
+    function showStatus(req) {
+        document.getElementById('action-panel').style.display = 'none';
+        document.getElementById('status-panel').style.display = 'block';
+
+        document.getElementById('driver-name').textContent = req.driver_name;
+        document.getElementById('driver-phone').textContent = req.contact_number;
+
+        // Show markers
+        var pLat = req.location_lat;
+        var pLon = req.location_lon;
+        var aLat = req.amb_lat;
+        var aLon = req.amb_lon;
+
+        patientMarker = L.marker([pLat, pLon]).addTo(map).bindPopup("You").openPopup();
+        var ambulanceIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/2618/2618503.png', // Car Icon
+            iconSize: [40, 40]
+        });
+        ambulanceMarker = L.marker([aLat, aLon], { icon: ambulanceIcon }).addTo(map).bindPopup("Ambulance");
+
+        var group = new L.featureGroup([patientMarker, ambulanceMarker]);
+        map.fitBounds(group.getBounds().pad(0.2));
+
+        // Calc simplified ETA
+        document.getElementById('eta-time').textContent = "5-10";
+    }
+
+    function showError(error) {
+        document.getElementById('loading').style.display = 'none';
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                alert("User denied the request for Geolocation.");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("Location information is unavailable.");
+                break;
+            case error.TIMEOUT:
+                alert("The request to get user location timed out.");
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("An unknown error occurred.");
+                break;
+        }
+    }
+
+    // Run Init
+    init();
+
+</script>
+{% endblock %}
