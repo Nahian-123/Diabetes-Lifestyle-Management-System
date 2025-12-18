@@ -1,0 +1,73 @@
+<!--ADITYA . USED FOR ADMIN'S DOCTOR SECTION. THIS PARRT SHOWS ALL THE NAME OF THE DOCTORS IN OUR PHARMACY  -->
+
+{% extends 'base.html' %}
+
+{% block title %}Manage Doctors{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-blocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .doctor-block {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: calc(33.333% - 40px);
+        box-sizing: border-box;
+        transition: transform 0.3s;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .doctor-block:hover {
+        transform: scale(1.05);
+    }
+
+    .doctor-block h2 {
+        margin: 0 0 10px;
+        color: #34495e;
+    }
+
+    .doctor-block p {
+        margin: 5px 0;
+        color: #7f8c8d;
+    }
+
+    @media (max-width: 768px) {
+        .doctor-block {
+            width: calc(50% - 40px);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .doctor-block {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Doctors</h2>
+
+<div class="doctor-blocks">
+    {% for doctor in doctors %}
+        <div class="doctor-block">
+            <h2>Name: {{ doctor.name }}</h2>
+            <p><strong>Designation:</strong> {{ doctor.designation }}</p>
+            <p><strong>Email:</strong> {{ doctor.email }}</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer>
+    &copy; 2025 Manage Doctors
+</footer>
+{% endblock %}

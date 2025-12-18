@@ -1,0 +1,79 @@
+<!-- ADITYA. USED FOR ADMIN'S APPOINTMENT SECTION  -->
+
+{% extends 'base.html' %}
+
+{% block title %}Appointments Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .appointment-table {
+        background-color: white;
+        border-radius: 8px;
+        right: 50%;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table th,
+    table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+
+    table th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Appointments Dashboard</h1>
+
+<div class="appointment-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Appointment ID</th>
+                <th>Doctor ID</th>
+                <th>Patient ID</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment.app_id }}</td>
+                    <td>{{ appointment.d_id }}</td>
+                    <td>{{ appointment.p_id }}</td>
+                    <td>{{ appointment.date }}</td>
+                    <td>{{ appointment.time }}</td>
+                    <td>{% if appointment.checked == 0 %}Not Checked{% else %}Checked{% endif %}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">No appointments found</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block footer %}
+<footer>
+    &copy; 2025 DMS
+</footer>
+{% endblock %}

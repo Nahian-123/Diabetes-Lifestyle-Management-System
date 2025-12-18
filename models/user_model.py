@@ -56,10 +56,17 @@ def login_user(email, password):
             cursor.execute('SELECT * FROM doctor WHERE domain_email = %s', (email,))
             user = cursor.fetchone()
             if user:
-                # Check verification status FIRST
+                # Check verification status
                 if user['verified'] == 0:
                     return {'error': 'Account not verified. Please check your email for the OTP.'}
+                elif user['verified'] == 1:
+                    return {'error': 'Your account is pending admin approval. You will be notified via email once approved.'}
+                elif user['verified'] == -1:
+                    return {'error': 'Your account has been rejected. Please contact support for more information.'}
+                elif user['verified'] != 2:
+                    return {'error': 'Account verification status unknown. Please contact support.'}
 
+                # Only allow login if verified = 2 (admin approved)
                 if check_password_hash(user['password'], password):
                     user_data = {
                         'user_id': user['d_id'],
@@ -103,15 +110,15 @@ def verify_otp(email, otp_code):
         if user['otp_code'] == otp_code:
             # Check expiry
             if user['otp_expiry'] and user['otp_expiry'] > datetime.now():
-                # Success! Verify the user
+                # Success! Set verified = 1 (email verified, pending admin approval)
                 cursor.execute("UPDATE doctor SET verified = 1, otp_code = NULL WHERE email = %s", (email,))
                 conn.commit()
                 result['success'] = True
-                result['message'] = "Account verified successfully! You can now login with your domain email."
+                result['message'] = "Email verified successfully! Your account is pending admin approval. You will be notified via email once approved."
             else:
-                 result['message'] = "OTP has expired."
+                result['message'] = "OTP has expired."
         else:
-             result['message'] = "Invalid OTP code."
+            result['message'] = "Invalid OTP code."
              
     except Exception as e:
         result['message'] = f"Database error: {str(e)}"

@@ -30,3 +30,31 @@ def send_email(to_address, subject, body):
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
+def send_doctor_approval_email(to_address, doctor_name, domain_email):
+    subject = "Doctor Account Approved - DLMS"
+    body = f"""Dear Dr. {doctor_name},
+
+Congratulations! Your account on the Diabetes Lifestyle Management System (DLMS) has been approved by the admin.
+
+You can now log in using your domain email:
+Login Email: {domain_email}
+
+Thank you for joining our medical professional network.
+
+Best regards,
+DLMS Admin Team"""
+    return send_email(to_address, subject, body)
+
+def send_doctor_rejection_email(to_address, doctor_name):
+    subject = "Doctor Account Application - DLMS"
+    body = f"""Dear {doctor_name},
+
+Thank you for your interest in joining the Diabetes Lifestyle Management System (DLMS).
+
+After reviewing your application, we regret to inform you that we cannot approve your account at this time.
+
+If you believe this is an error or have further information to provide, please contact our support team.
+
+Best regards,
+DLMS Admin Team"""
+    return send_email(to_address, subject, body)

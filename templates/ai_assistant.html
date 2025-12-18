@@ -1,6 +1,7 @@
 <!--whole new by angshu-->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,280 +19,294 @@
 
 
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-            <div class="sidebar-sticky">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
 
 
-                <!-- ⭐ Logo Section START -->
-                <div class="sidebar-logo text-center my-3">
-                    <img src="{{ url_for('static', filename='DLMS logo.png') }}" 
-                        class="img-fluid sidebar-logo-img" 
-                        alt="Logo">
-                    <h5 class="mt-2 fw-bold">DLMS</h5>
+                    <!-- ⭐ Logo Section START -->
+                    <div class="sidebar-logo text-center my-3">
+                        <img src="{{ url_for('static', filename='DLMS logo.png') }}" class="img-fluid sidebar-logo-img"
+                            alt="Logo">
+                        <h5 class="mt-2 fw-bold">DLMS</h5>
+                    </div>
+                    <!-- ⭐ Logo Section END -->
+
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-grid-fill"></i> Dashboard</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+
+
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+
+                            <!-- url_for('update_patient_profile') -->
+                            <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i
+                                    class="bi bi-person-fill"></i> Update Profile</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+
+                            <!--  url_for('verified_doctor_list') -->
+                            <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i
+                                    class="bi bi-list-nested"></i> Doctor List</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('my_prescription') }}"><i
+                                    class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('patient_appointments') }}"><i
+                                    class="bi bi-calendar-check-fill"></i> Appointments</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-person-fill"></i> Diet suggestion</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('my_reviews') }}"><i class="bi bi-star-fill"></i> My
+                                Reviews</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+
+
+
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('urgent_care') }}"><i class="bi bi-capsule"></i> 24/7
+                                Urgent Care</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+                        <!--AI-->
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link active" href="{{ url_for('ai_assistant') }}"><i
+                                    class="bi bi-lightbulb"></i> AI-Assistant</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{url_for('telemedicine_payment') }}"><i
+                                    class="bi bi-currency-dollar"></i> Telemedicine Payment</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- <p class="space-between"></p> -->
+                            <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>
+                                Logout</a>
+                            <!-- <p class="space-between"></p> -->
+                        </li>
+                    </ul>
                 </div>
-                <!-- ⭐ Logo Section END -->
+            </nav>
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">AI Health Assistant</h1>
+                </div>
 
+                <div id="flash-message-area"></div>
 
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-
-                         <!-- url_for('update_patient_profile') -->
-                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-
-                    <!--  url_for('verified_doctor_list') -->
-                        <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('my_prescription') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('patient_appointments') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-person-fill"></i> Diet suggestion</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-
-
-
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-capsule"></i> 24/7 Urgent Care</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-                    <!--AI-->
-                    <li class="nav-item">
-                            <!--<p class="space-between"></p>-->
-                            <a class="nav-link active" href="{{ url_for('ai_assistant') }}"><i class="bi bi-lightbulb"></i> AI-Assistant</a>
-                            <!--<p class="space-between"></p>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{url_for('telemedicine_payment') }}"><i class="bi bi-currency-dollar"></i> Telemedicine Payment</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-
-                    <li class="nav-item">
-                        <!-- <p class="space-between"></p> -->
-                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
-                        <!-- <p class="space-between"></p> -->
-                    </li>
-                </ul>
-            </div>
-        </nav>
-        <!-- Main Content -->
-         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">AI Health Assistant</h1>
-            </div>
-
-            <div id="flash-message-area"></div>
-                
                 <div class="chat-container shadow-sm mb-3" id="chat-box">
                     <div class="text-center text-muted mt-5" id="welcome-msg">
                         <i class="bi bi-robot fs-1"></i>
-                        <p class="intro-message"><strong>Hello! I am your AI assistant. Ask me anything about diabetes management.</strong></p>
+                        <p class="intro-message"><strong>Hello! I am your AI assistant. Ask me anything about diabetes
+                                management.</strong></p>
                     </div>
                 </div>
 
-               <div class="card bg-light border-0">
+                <div class="card bg-light border-0">
                     <div class="card-body p-2">
-                        <div class="input-group"> 
-                            <textarea id="user-input" class="form-control" rows="2" placeholder="Type your health question here..." style="resize: none;"></textarea>
+                        <div class="input-group">
+                            <textarea id="user-input" class="form-control" rows="2"
+                                placeholder="Type your health question here..." style="resize: none;"></textarea>
                             <button class="btn btn-primary px-4" type="button" onclick="handleSend()" id="send-btn">
                                 <i class="bi bi-send-fill"></i> Send
                             </button>
                         </div>
                     </div>
                 </div>
-            </div>
+        </div>
 
         </main>
-        </div>
-</div>
+    </div>
+    </div>
 
-<script>
-    // Handle Enter Key
-    document.getElementById('user-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
-    });
+    <script>
+        // Handle Enter Key
+        document.getElementById('user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
 
-    async function handleSend() {
-        const inputField = document.getElementById('user-input');
-        const chatBox = document.getElementById('chat-box');
-        const flashArea = document.getElementById('flash-message-area');
-        const userText = inputField.value.trim();
+        async function handleSend() {
+            const inputField = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const flashArea = document.getElementById('flash-message-area');
+            const userText = inputField.value.trim();
 
-        if (!userText) return;
+            if (!userText) return;
 
-        // Clear errors & Welcome msg
-        flashArea.innerHTML = '';
-        const welcome = document.getElementById('welcome-msg');
-        if (welcome) welcome.style.display = 'none';
+            // Clear errors & Welcome msg
+            flashArea.innerHTML = '';
+            const welcome = document.getElementById('welcome-msg');
+            if (welcome) welcome.style.display = 'none';
 
-        // 1. Display USER Message (RIGHT Side - Blue)
-        const userHtml = `
+            // 1. Display USER Message (RIGHT Side - Blue)
+            const userHtml = `
             <div class="chat-message user-message">
                 <div class="message-content">
                     <strong>You</strong><br>
                     ${userText.replace(/\n/g, '<br>')}
                 </div>
             </div>`;
-        chatBox.insertAdjacentHTML('beforeend', userHtml);
-        
-        inputField.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.insertAdjacentHTML('beforeend', userHtml);
 
-        // 2. Add Loading Indicator (LEFT Side - Grey)
-        const loadingId = 'loading-' + Date.now();
-        const loadingHtml = `
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. Add Loading Indicator (LEFT Side - Grey)
+            const loadingId = 'loading-' + Date.now();
+            const loadingHtml = `
             <div class="chat-message ai-message" id="${loadingId}">
                 <div class="message-content">
                     <div class="spinner-border spinner-border-sm text-secondary" role="status"></div> 
                     <em class="text-muted"> Thinking...</em>
                 </div>
             </div>`;
-        chatBox.insertAdjacentHTML('beforeend', loadingHtml);
-        chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.insertAdjacentHTML('beforeend', loadingHtml);
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-        try {
-            // 3. Send Request
-            const response = await fetch('/ai_assistant', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: userText })
-            });
+            try {
+                // 3. Send Request
+                const response = await fetch('/ai_assistant', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: userText })
+                });
 
-            const data = await response.json();
-            
-            // Remove Loading Indicator
-            document.getElementById(loadingId).remove();
+                const data = await response.json();
 
-            // 4. Handle Response
-            if (data.success === false) {
-                // ERROR: Show Flash Message at TOP
-                flashArea.innerHTML = `
+                // Remove Loading Indicator
+                document.getElementById(loadingId).remove();
+
+                // 4. Handle Response
+                if (data.success === false) {
+                    // ERROR: Show Flash Message at TOP
+                    flashArea.innerHTML = `
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <strong>Error:</strong> ${data.message}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>`;
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            } else {
-                // SUCCESS: Create AI Bubble (LEFT Side - Grey)
-                const aiMsgId = 'ai-msg-' + Date.now();
-                
-                const aiHtml = `
+                } else {
+                    // SUCCESS: Create AI Bubble (LEFT Side - Grey)
+                    const aiMsgId = 'ai-msg-' + Date.now();
+
+                    const aiHtml = `
                     <div class="chat-message ai-message">
                         <div class="message-content typing-cursor" id="${aiMsgId}">
                             </div>
                     </div>`;
-                chatBox.insertAdjacentHTML('beforeend', aiHtml);
-                
-                // Run Typing Effect
-                const element = document.getElementById(aiMsgId);
-                await typeWriterEffect(element, data.response);
-            }
+                    chatBox.insertAdjacentHTML('beforeend', aiHtml);
 
-        } catch (error) {
-            document.getElementById(loadingId)?.remove();
-            flashArea.innerHTML = `
+                    // Run Typing Effect
+                    const element = document.getElementById(aiMsgId);
+                    await typeWriterEffect(element, data.response);
+                }
+
+            } catch (error) {
+                document.getElementById(loadingId)?.remove();
+                flashArea.innerHTML = `
                 <div class="alert alert-danger" role="alert">
                     Network Error: ${error.message}
                 </div>`;
-        }
-    }
-
-    // Typing Effect Function (Unchanged)
-    function typeWriterEffect(element, htmlContent) {
-        return new Promise(resolve => {
-            // 1. Reset content
-            element.innerHTML = '';
-
-            // 2. Regex to split string into "Tags" and "Text"
-            // This captures <any_tag> OR any_non_tag_text
-            const tokens = htmlContent.match(/<[^>]+>|[^<]+/g) || [];
-
-            let tokenIndex = 0;
-            
-            function processNextToken() {
-                if (tokenIndex >= tokens.length) {
-                    element.classList.remove('typing-cursor');
-                    resolve();
-                    return;
-                }
-
-                const currentToken = tokens[tokenIndex];
-
-                // CASE A: It is an HTML Tag (starts with <)
-                // Append it instantly so structure exists, but don't "animate" it
-                if (currentToken.startsWith('<')) {
-                    element.innerHTML += currentToken;
-                    tokenIndex++;
-                    processNextToken(); // Immediately move to next without delay
-                } 
-                // CASE B: It is Text
-                // We type this part out to give the effect
-                else {
-                    // Split text into smaller chunks (words) for the typing effect
-                    // We use a regex that preserves spaces to keep natural flow
-                    const words = currentToken.split(/(\s+)/); 
-                    
-                    let wordIndex = 0;
-                    function typeWord() {
-                        if (wordIndex < words.length) {
-                            element.innerHTML += words[wordIndex];
-                            
-                            // Auto-scroll to bottom
-                            const chatBox = document.getElementById('chat-box');
-                            chatBox.scrollTop = chatBox.scrollHeight;
-                            
-                            wordIndex++;
-                            setTimeout(typeWord, 20); // Typing speed (ms)
-                        } else {
-                            tokenIndex++;
-                            processNextToken(); // Text chunk done, move to next token
-                        }
-                    }
-                    typeWord();
-                }
             }
+        }
 
-            // Start the process
-            processNextToken();
-        });
-    }
-</script>
+        // Typing Effect Function (Unchanged)
+        function typeWriterEffect(element, htmlContent) {
+            return new Promise(resolve => {
+                // 1. Reset content
+                element.innerHTML = '';
+
+                // 2. Regex to split string into "Tags" and "Text"
+                // This captures <any_tag> OR any_non_tag_text
+                const tokens = htmlContent.match(/<[^>]+>|[^<]+/g) || [];
+
+                let tokenIndex = 0;
+
+                function processNextToken() {
+                    if (tokenIndex >= tokens.length) {
+                        element.classList.remove('typing-cursor');
+                        resolve();
+                        return;
+                    }
+
+                    const currentToken = tokens[tokenIndex];
+
+                    // CASE A: It is an HTML Tag (starts with <)
+                    // Append it instantly so structure exists, but don't "animate" it
+                    if (currentToken.startsWith('<')) {
+                        element.innerHTML += currentToken;
+                        tokenIndex++;
+                        processNextToken(); // Immediately move to next without delay
+                    }
+                    // CASE B: It is Text
+                    // We type this part out to give the effect
+                    else {
+                        // Split text into smaller chunks (words) for the typing effect
+                        // We use a regex that preserves spaces to keep natural flow
+                        const words = currentToken.split(/(\s+)/);
+
+                        let wordIndex = 0;
+                        function typeWord() {
+                            if (wordIndex < words.length) {
+                                element.innerHTML += words[wordIndex];
+
+                                // Auto-scroll to bottom
+                                const chatBox = document.getElementById('chat-box');
+                                chatBox.scrollTop = chatBox.scrollHeight;
+
+                                wordIndex++;
+                                setTimeout(typeWord, 20); // Typing speed (ms)
+                            } else {
+                                tokenIndex++;
+                                processNextToken(); // Text chunk done, move to next token
+                            }
+                        }
+                        typeWord();
+                    }
+                }
+
+                // Start the process
+                processNextToken();
+            });
+        }
+    </script>
 </body>
+
 </html>

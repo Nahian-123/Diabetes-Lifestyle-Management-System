@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Verification{% endblock %}
+
+{% block content %}
+<h1>Doctor Verification</h1>
+<p><strong>Pending Verifications:</strong> {{ pending_count }}</p>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Doctor ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Designation</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in doctors %}
+            <tr id="doctor{{ doc.d_id }}">
+                <td>{{ doc.d_id }}</td>
+                <td>{{ doc.name }}</td>
+                <td>{{ doc.email }}</td>
+                <td>{{ doc.designation }}</td>
+                <td class="status">
+                    {% if doc.verified == 2 %}
+                    <span class="text-success">✅ Approved</span>
+                    {% elif doc.verified == 1 %}
+                    <span class="text-warning">⏳ Pending Admin Approval</span>
+                    {% elif doc.verified == -1 %}
+                    <span class="text-danger">❌ Rejected</span>
+                    {% else %}
+                    <span class="text-muted">⏳ Pending Email Verification</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if doc.verified == 1 %}
+                    <form method="POST" action="{{ url_for('admin_verify') }}">
+                        <input type="hidden" name="d_id" value="{{ doc.d_id }}">
+                        <button class="btn btn-success btn-sm" type="submit" name="action"
+                            value="Confirm">Approve</button>
+                        <button class="btn btn-danger btn-sm" type="submit" name="action" value="Cancel">Reject</button>
+                    </form>
+                    {% elif doc.verified == 0 or doc.verified == None %}
+                    <span class="badge bg-secondary">Awaiting Email OTP</span>
+                    {% else %}
+                    <span class="badge bg-light text-dark">No action</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status {
+        font-weight: bold;
+    }
+
+    .table-responsive {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
