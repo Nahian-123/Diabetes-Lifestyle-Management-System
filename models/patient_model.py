@@ -59,7 +59,7 @@ def get_verified_doctor_details():
     sql= """
         SELECT d_id, name, designation, location, email, phone 
         FROM doctor 
-        WHERE verified = 1 AND designation IS NOT NULL 
+        WHERE verified = 2 AND designation IS NOT NULL 
         AND location IS NOT NULL AND phone IS NOT NULL
     """
     cursor.execute(sql)
@@ -535,7 +535,7 @@ def get_verified_doctor_details():
     sql= """
         SELECT d_id, name, designation, location, email, phone 
         FROM doctor 
-        WHERE verified = 1 AND designation IS NOT NULL 
+        WHERE verified = 2 AND designation IS NOT NULL 
         AND location IS NOT NULL AND phone IS NOT NULL
     """
     cursor.execute(sql)

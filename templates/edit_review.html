@@ -1,0 +1,121 @@
+{% extends 'patient_base.html' %}
+
+{% block title %}Edit Review{% endblock %}
+
+{% block head %}
+<style>
+    .edit-review-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+
+    .rating-container {
+        margin-bottom: 2rem;
+        display: block;
+    }
+
+    .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 5px;
+        height: 50px;
+        align-items: center;
+    }
+
+    .rating>input {
+        display: none;
+    }
+
+    .rating>label {
+        position: relative;
+        width: 1.1em;
+        font-size: 2.5rem;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .rating>label::before {
+        content: "\2605";
+        position: absolute;
+    }
+
+    .rating>label:hover:before,
+    .rating>label:hover~label:before,
+    .rating>input:checked~label:before {
+        color: #FFD700;
+    }
+
+    .rating:hover>input:checked~label:before {
+        opacity: 0.6;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .btn-back {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4">
+    <h1 class="h2 fw-bold text-primary">Edit Review</h1>
+    <a href="{{ url_for('my_reviews') }}" class="btn btn-outline-primary btn-sm btn-back">
+        <i class="bi bi-arrow-left"></i> Back to My Reviews
+    </a>
+</div>
+
+<div class="card edit-review-card mb-4">
+    <div class="card-header bg-transparent border-bottom py-3">
+        <h5 class="mb-0 fw-bold">Review for Dr. {{ review.doctor_name }}</h5>
+        <small class="text-muted">{{ review.designation }}</small>
+    </div>
+    <div class="card-body p-4">
+        <form method="POST">
+            <div class="rating-container">
+                <label class="form-label d-block mb-2">Rating</label>
+                <div class="rating">
+                    <input type="radio" name="rating" value="5" id="rating-5" {% if review.rating==5 %}checked{% endif
+                        %} required>
+                    <label for="rating-5" title="5 stars"></label>
+                    <input type="radio" name="rating" value="4" id="rating-4" {% if review.rating==4 %}checked{% endif
+                        %}>
+                    <label for="rating-4" title="4 stars"></label>
+                    <input type="radio" name="rating" value="3" id="rating-3" {% if review.rating==3 %}checked{% endif
+                        %}>
+                    <label for="rating-3" title="3 stars"></label>
+                    <input type="radio" name="rating" value="2" id="rating-2" {% if review.rating==2 %}checked{% endif
+                        %}>
+                    <label for="rating-2" title="2 stars"></label>
+                    <input type="radio" name="rating" value="1" id="rating-1" {% if review.rating==1 %}checked{% endif
+                        %}>
+                    <label for="rating-1" title="1 star"></label>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="comment" class="form-label mb-2">Comment</label>
+                <textarea class="form-control" id="comment" name="comment" rows="4"
+                    placeholder="Update your review feedback..."
+                    style="border-radius: 8px;">{{ review.comment }}</textarea>
+            </div>
+
+            <div class="d-grid d-md-flex justify-content-md-start">
+                <button type="submit" class="btn btn-primary px-5 py-2 fw-bold" style="border-radius: 8px;">
+                    Update Review
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

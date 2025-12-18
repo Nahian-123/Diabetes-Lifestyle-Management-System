@@ -18,13 +18,14 @@ from models.user_model import login_user, register_user, validate_email
 from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment #last 3 imports by angshu
 from models.user_model import login_user, register_user, validate_email
 from models.doctor_model import get_doctor_name, get_doctor_notices, update_doctor_profile #new line by angshu
-from models.admin_model import insert_notice,get_dashboard_stats
+from models.admin_model import insert_notice, get_dashboard_stats, get_all_doctors, get_all_doctors_for_verification, update_doctor_verification
+from models.email_sender import send_doctor_approval_email, send_doctor_rejection_email
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
 # For Google Calendar API
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
+# from googleapiclient.discovery import build
+# from google.oauth2.credentials import Credentials
+# from google_auth_oauthlib.flow import Flow
 import os
 from models.ai_assistant_model import get_llama_response #new line by angshu
 # Google Calendar API Setup
@@ -143,6 +144,10 @@ def login():
         user_data = login_user(email, password)
        
         if user_data:
+            if isinstance(user_data, dict) and 'error' in user_data:
+                flash(user_data['error'], 'error')
+                return redirect(url_for('login'))
+
             session['user_id'] = user_data['user_id']
             session['email'] = user_data['email']
             session['role'] = user_data['role']
@@ -297,6 +302,47 @@ def admin_dashboard():
                           total_doctors=stats['total_doctors'],
                           total_patients=stats['total_patients'],
                           timestamp=stats['timestamp'])
+
+@app.route('/admin_verify', methods=['GET', 'POST'])
+@login_required
+def admin_verify():
+    if session.get('role') != 'admin':
+        flash("Unauthorized access!")
+        return redirect(url_for('login'))
+        
+    if request.method == 'POST':
+        d_id = request.form.get('d_id')
+        action = request.form.get('action')
+        
+        result = update_doctor_verification(d_id, action)
+        if result['success']:
+            # Send email notification
+            if action == 'Confirm':
+                send_doctor_approval_email(result['doctor_email'], result['doctor_name'], result['domain_email'])
+            elif action == 'Cancel':
+                send_doctor_rejection_email(result['doctor_email'], result['doctor_name'])
+                
+            flash(result['message'], "success")
+        else:
+            flash(result['message'], "danger")
+            
+        return redirect(url_for('admin_verify'))
+    
+    # GET request: show all doctors for verification
+    result = get_all_doctors_for_verification()
+    return render_template('adverify.html', 
+                           doctors=result['doctors'], 
+                           pending_count=result['pending_count'],
+                           id=session.get('user_id'))
+
+@app.route('/admin/doctors')
+@login_required
+def admin_doctors():
+    if session.get('role') != 'admin':
+        flash("Unauthorized access!")
+        return redirect(url_for('login'))
+    doctors = get_all_doctors()
+    return render_template('addoc.html', doctors=doctors)
 
 @app.route('/doctor_dashboard', endpoint='doctor_dashboard')
 def doctor_dashboard():
@@ -626,8 +672,7 @@ def patient_dashboard():
     zoom_meeting_id = patient.get('zoom_meeting_id')
     zoom_password = patient.get('zoom_password')
 
-    return render_template(
-        'patient_dashboard.html',
+    return render_template('patient_dashboard.html',
         name=patient['name'],
         p_id=p_id,
         updated_on=patient['updated_on'],
@@ -1514,7 +1559,7 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
 
 
 
-from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors,get_doctor_reviews
+from models.review_model import add_review, get_patient_reviews, delete_review, get_reviewable_doctors, get_doctor_reviews, get_review_by_id, update_review
 # Adi integrated - Doctor review system
 @app.route('/write_review', methods=['GET', 'POST'])
 def write_review():
@@ -1554,6 +1599,36 @@ def write_review():
     
     reviewable_doctors = get_reviewable_doctors(p_id)
     return render_template('write_review.html', doctors=reviewable_doctors)
+
+@app.route('/edit_review/<int:review_id>', methods=['GET', 'POST'])
+@login_required
+def edit_review_route(review_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    p_id = session['user_id']
+    
+    # Check ownership
+    review = get_review_by_id(review_id)
+    if not review or review['p_id'] != p_id:
+        flash("Review not found or access denied.", "error")
+        return redirect(url_for('my_reviews'))
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        if not rating:
+            flash("Rating is required", "error")
+        else:
+            result = update_review(review_id, rating, comment)
+            if result['success']:
+                flash("Review updated successfully!", "success")
+                return redirect(url_for('my_reviews'))
+            else:
+                flash(result['message'], "error")
+
+    return render_template('edit_review.html', review=review)
 
 # Adi integrated - View patient's own reviews
 @app.route('/my_reviews')
@@ -1668,6 +1743,69 @@ def update_doctor_profile_route():
 
 
 #############################################
+# ...
+from models.urgent_care_model import request_ambulance, get_active_request, notify_family, add_emergency_contact, get_emergency_contacts, mark_ride_completed
+
+# ...
+
+@app.route('/urgent_care')
+@login_required
+def urgent_care():
+    if session.get('role') != 'patient':
+        flash('Access denied. Patients only.', 'error')
+        return redirect(url_for('login'))
+        
+    p_id = session['user_id']
+    active_req = get_active_request(p_id)
+    contacts = get_emergency_contacts(p_id)
+    
+    return render_template('urgent_care.html', active_request=active_req, contacts=contacts)
+
+@app.route('/api/request_ambulance', methods=['POST'])
+@login_required
+def api_request_ambulance():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'latitude' not in data or 'longitude' not in data:
+        return jsonify({'success': False, 'message': 'Invalid location data'})
+        
+    result = request_ambulance(p_id, data['latitude'], data['longitude'])
+    return jsonify(result)
+
+@app.route('/api/add_contact', methods=['POST'])
+@login_required
+def api_add_contact():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'name' not in data or 'contact_number' not in data:
+         return jsonify({'success': False, 'message': 'Missing data'})
+         
+    result = add_emergency_contact(p_id, data['name'], data['contact_number'], data.get('relation', 'Family'))
+    return jsonify(result)
+
+@app.route('/api/notify_family', methods=['POST'])
+@login_required
+def api_notify_family():
+    p_id = session['user_id']
+    data = request.json
+    
+    if not data or 'latitude' not in data or 'longitude' not in data:
+        return jsonify({'success': False, 'message': 'Invalid location data'})
+    
+    recipients = data.get('recipients', 'all') # Default to 'all' if not specified
+        
+    result = notify_family(p_id, data['latitude'], data['longitude'], recipients)
+    return jsonify(result)
+
+@app.route('/api/complete_ride', methods=['POST'])
+@login_required
+def api_complete_ride():
+    p_id = session['user_id']
+    result = mark_ride_completed(p_id)
+    return jsonify(result)
+
 # LOGOUT
 @app.route('/logout')
 def logout():

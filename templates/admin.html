@@ -5,25 +5,34 @@
 {% block content %}
 <h1>Welcome, Admin {{ id }}</h1>
 <div class="info-box">
-        <p class="lead"><p><strong>Here you can manage doctors, verify users, and view appointments. </strong></p></p>
-        <hr> <div class="stats-container">
-            <p><strong>Logged In:</strong> {{ timestamp }}</p>
-            <p><strong>Appointments today:</strong> {{ pending_app }}</p>
-            <p><strong>Pending verifications:</strong> {{ pending_count }}</p>
-        </div>
+    <p class="lead">
+    <p><strong>Here you can manage doctors, verify users, and view appointments. </strong></p>
+    </p>
+    <hr>
+    <div class="stats-container">
+        <p><strong>Logged In:</strong> {{ timestamp }}</p>
+        <p><strong>Appointments today:</strong> {{ pending_app }}</p>
+        <p><strong>Pending doctor approvals:</strong> {{ pending_count }}</p>
+        <p><a href="{{ url_for('admin_doctors') }}" class="btn-link">View All Doctors</a></p>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}
 
 {% block extra_css %}
 <style>
     /* Add this style block to style the box specifically */
     .info-box {
-        background-color: rgba(136, 100, 236, 0.541);      
-        padding: 30px;                 /* Space inside the box */
-        border-radius: 12px;           /* Rounded corners */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.123); /* Subtle shadow for depth */
-        margin-top: 20px;              /* Space between "Welcome" and the box */
-        max-width: 800px;              /* Optional: stops it from getting too wide */
+        background-color: rgba(136, 100, 236, 0.541);
+        padding: 30px;
+        /* Space inside the box */
+        border-radius: 12px;
+        /* Rounded corners */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.123);
+        /* Subtle shadow for depth */
+        margin-top: 20px;
+        /* Space between "Welcome" and the box */
+        max-width: 800px;
+        /* Optional: stops it from getting too wide */
     }
 
     .lead {
@@ -37,4 +46,3 @@
     }
 </style>
 {% endblock %}
-        

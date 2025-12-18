@@ -65,6 +65,40 @@ def add_review(p_id, d_id, rating, comment):       #######  ADITYA ########
         cursor.close()
         conn.close()
 
+def get_review_by_id(review_id):
+    """Get a single review by its ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT dr.*, d.name as doctor_name, d.designation 
+            FROM doctor_reviews dr
+            JOIN doctor d ON dr.d_id = d.d_id
+            WHERE dr.review_id = %s
+        """, (review_id,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+def update_review(review_id, rating, comment):
+    """Update a specific review by ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE doctor_reviews 
+            SET rating = %s, comment = %s, review_date = %s
+            WHERE review_id = %s
+        """, (rating, comment, datetime.now(), review_id))
+        conn.commit()
+        return {"success": True, "message": "Review updated successfully"}
+    except Exception as e:
+        return {"success": False, "message": f"Error updating review: {str(e)}"}
+    finally:
+        cursor.close()
+        conn.close()
+
 def get_doctor_reviews(d_id):          #######  ADITYA ########
     """Get all reviews for a specific doctor"""
     conn = get_db_connection()

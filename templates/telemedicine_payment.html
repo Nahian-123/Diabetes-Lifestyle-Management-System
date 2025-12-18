@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,104 +12,117 @@
 </head>
 
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <nav id="sidebar" class="col-md-2 d-none d-md-block bg-light sidebar">
-            <div class="sidebar-sticky">
-                <!-- ⭐ Logo Section START -->
-                <div class="sidebar-logo text-center my-3">
-                    <img src="{{ url_for('static', filename='DLMS logo.png') }}" 
-                        class="img-fluid sidebar-logo-img" 
-                        alt="Logo">
-                    <h5 class="mt-2 fw-bold">DLMS</h5>
-                </div>
-                <!-- ⭐ Logo Section END -->
-                <ul class="nav flex-column">
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-2 d-none d-md-block bg-light sidebar">
+                <div class="sidebar-sticky">
+                    <!-- ⭐ Logo Section START -->
+                    <div class="sidebar-logo text-center my-3">
+                        <img src="{{ url_for('static', filename='DLMS logo.png') }}" class="img-fluid sidebar-logo-img"
+                            alt="Logo">
+                        <h5 class="mt-2 fw-bold">DLMS</h5>
+                    </div>
+                    <!-- ⭐ Logo Section END -->
+                    <ul class="nav flex-column">
 
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-
-                
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--p<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i class="bi bi-list-nested"></i> Doctor List</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                     <li class="nav-item">
-                        <!--p<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('my_prescription') }}"><i class="bi bi-file-text-fill"></i> My Prescriptions</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                     <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-bar-chart-fill"></i> Diet Suggestion</a>
-                        <!--<p class="space-between"></p>-->
-
-                    </li>
-		            <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-star-fill"></i> My Reviews</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-    
-
-
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i class="bi bi-capsule"></i> 24/7 Urgent Care</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                    <!--AI-->
-                    <li class="nav-item">
+                        <li class="nav-item">
                             <!--<p class="space-between"></p>-->
-                            <a class="nav-link" href="{{ url_for('ai_assistant') }}"><i class="bi bi-lightbulb"></i> AI-Assistant</a>
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-grid-fill"></i> Dashboard</a>
                             <!--<p class="space-between"></p>-->
-                    </li>
+                        </li>
 
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link active" href="{{ url_for('telemedicine_payment') }}"><i class="bi bi-cash-dollar"></i> Telemedicine Payment</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
 
-                    <li class="nav-item">
-                        <!--<p class="space-between"></p>-->
-                        <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
-                        <!--<p class="space-between"></p>-->
-                    </li>
-                </ul>
-            </div>
-        </nav>
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('update_patient_profile') }}"><i
+                                    class="bi bi-person-fill"></i> Update Profile</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <li class="nav-item">
+                            <!--p<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('verified_doctor_list') }}"><i
+                                    class="bi bi-list-nested"></i> Doctor List</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <li class="nav-item">
+                            <!--p<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('my_prescription') }}"><i
+                                    class="bi bi-file-text-fill"></i> My Prescriptions</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-calendar-check-fill"></i> Appointments</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('patient_dashboard') }}"><i
+                                    class="bi bi-bar-chart-fill"></i> Diet Suggestion</a>
+                            <!--<p class="space-between"></p>-->
 
-        <main id="main-content" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-            <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Telemedicine Payments</h1>
-                
-                <div class="d-flex justify-content-end align-items-center" style="gap: 20px;">
-                     <div><p class="text-center"><strong>Your ID: {{ p_id }}</strong></p></div>
+                        </li>
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('my_reviews') }}"><i class="bi bi-star-fill"></i> My
+                                Reviews</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+
+
+
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('urgent_care') }}"><i class="bi bi-capsule"></i> 24/7
+                                Urgent Care</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                        <!--AI-->
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('ai_assistant') }}"><i class="bi bi-lightbulb"></i>
+                                AI-Assistant</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link active" href="{{ url_for('telemedicine_payment') }}"><i
+                                    class="bi bi-cash-dollar"></i> Telemedicine Payment</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+
+                        <li class="nav-item">
+                            <!--<p class="space-between"></p>-->
+                            <a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i>
+                                Logout</a>
+                            <!--<p class="space-between"></p>-->
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </nav>
 
-            <div class="payment-container">
-                {% if unpaid_list %}
+            <main id="main-content" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+                <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Telemedicine Payments</h1>
+
+                    <div class="d-flex justify-content-end align-items-center" style="gap: 20px;">
+                        <div>
+                            <p class="text-center"><strong>Your ID: {{ p_id }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-container">
+                    {% if unpaid_list %}
                     <div class="payment-list">
                         {% for item in unpaid_list %}
                         <div class="payment-item">
                             <div class="payment-text">
-                                <strong>Dear patient, would you like to pay for the unpaid telemedicine session {{ item.app_id }}? </strong>
+                                <strong>Dear patient, would you like to pay for the unpaid telemedicine session {{
+                                    item.app_id }}? </strong>
                             </div>
                             <a href="{{ url_for('payment_gateway', app_id=item.app_id) }}" class="btn btn-proceed">
                                 Proceed to Payment
@@ -116,17 +130,18 @@
                         </div>
                         {% endfor %}
                     </div>
-                {% else %}
+                    {% else %}
                     <div class="alert alert-success text-center">
                         You have no pending telemedicine payments.
                     </div>
-                {% endif %}
-            </div>
+                    {% endif %}
+                </div>
 
-        </main>
+            </main>
+        </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
