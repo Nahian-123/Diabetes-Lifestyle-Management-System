@@ -139,3 +139,16 @@ def get_appointment_details(app_id):  # For Email System
     return data
 
 #==========NAHIAN M3 ends=====================================================================
+
+#==========Angshu m3+m4 starts=====================================================================
+def update_doctor_profile(d_id, designation, phone, location):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE doctor SET designation = %s, phone = %s, location = %s
+        WHERE d_id = %s
+    """, (designation, phone, location, d_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+#==========Angshu m3+m4 ends=====================================================================

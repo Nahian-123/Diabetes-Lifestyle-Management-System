@@ -8,7 +8,7 @@ import requests  # Added for Zoom API calls
 #import jwt  # Added for JWT token generation
 #import time
 import json
-
+import markdown, bleach #new line by angshy
 # # DeepFace for verification
 # from deepface import DeepFace
 
@@ -17,7 +17,7 @@ from models.user_model import login_user, register_user, validate_email
 
 from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment #last 3 imports by angshu
 from models.user_model import login_user, register_user, validate_email
-from models.doctor_model import get_doctor_name, get_doctor_notices 
+from models.doctor_model import get_doctor_name, get_doctor_notices, update_doctor_profile #new line by angshu
 from models.admin_model import insert_notice,get_dashboard_stats
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
@@ -26,7 +26,7 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 import os
-
+from models.ai_assistant_model import get_llama_response #new line by angshu
 # Google Calendar API Setup
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Allow http:// for local dev
 CLIENT_SECRETS_FILE = "client_secret.json"
@@ -589,6 +589,7 @@ def patient_dashboard():
 
     p_id = session['user_id']
     patient = get_patient_name_glucose_info_update(p_id)
+    medication_messages = get_time_based_medication_reminder(p_id) #new line by angshu
     if not patient:
         return "Patient not found", 404
 
@@ -602,7 +603,7 @@ def patient_dashboard():
     # SMBG Routine
     prescriptions= get_latest_SMBG_routine(p_id)
     smbg_routine_details = {}
-
+    notices= get_patient_notices(p_id) #new line by angshu
     # Find first non-null weekly_smbg
     for entry in prescriptions:
         if entry["weekly_smbg"] is not None:
@@ -631,15 +632,15 @@ def patient_dashboard():
         p_id=p_id,
         updated_on=patient['updated_on'],
         glucose_data=glucose_data,
-       
+        medication_message=medication_messages, #new line by angshu
         smbg_status=smbg_routine_details["status"],
         weekly_smbg=smbg_routine_details.get("weekly_smbg"),
         doctor_name=smbg_routine_details.get("doctor_name"),
         smbg_date=smbg_routine_details.get("date"),
         zoom_meeting_link=zoom_meeting_link,
         zoom_meeting_id=zoom_meeting_id,
-        zoom_password=zoom_password
-        )  
+        zoom_password=zoom_password,
+        notices=notices) #new line by angshu  
 
 #==========LABIBA M1 ends=====================================================================
 
@@ -1596,6 +1597,74 @@ def doctor_reviews():
     d_id = session['user_id']
     review_data = get_doctor_reviews(d_id)
     return render_template('doctor_reviews.html', review_data=review_data)
+
+#================M3+M4 Angshu starts===========================
+@app.route('/ai_assistant', methods=['GET', 'POST'])
+def ai_assistant():
+    # 1. Authentication Check (Common for both)
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    # 2. Handle Chat Logic (POST request from JavaScript)
+    if request.method == 'POST':
+        data = request.get_json()
+        
+        if not data or 'prompt' not in data:
+            return jsonify({"success": False, "message": "Missing 'prompt' in request body"}), 400
+
+        user_prompt = data['prompt']
+        
+        # Call the model
+        result = get_llama_response(user_prompt)
+        
+        # Handle Model Error
+        if result['status'] == 'error':
+            return jsonify({
+                "success": False, 
+                "message": result['payload'] 
+            })
+
+        # Handle Model Success
+        elif result['status'] == 'success':
+            raw_response = result['payload']
+            
+            # Convert Markdown to HTML & Sanitize
+            html_response = markdown.markdown(raw_response)
+            allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ['p', 'br', 'h1', 'h2', 'h3', 'strong', 'em', 'pre', 'code', 'ul', 'ol', 'li']
+            clean_html_response = bleach.clean(html_response, tags=allowed_tags)
+            
+            return jsonify({
+                "success": True,
+                "response": clean_html_response,
+                "raw_text": raw_response
+            })
+
+    # 3. Handle Page Load (GET request)
+    return render_template('ai_assistant.html', p_id=session['user_id'])
+
+@app.route('/update_doctor_profile', methods=['GET', 'POST'], endpoint='update_doctor_profile')
+def update_doctor_profile_route():
+    d_id= session['user_id']
+    if 'user_id' not in session:  
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))  
+    
+    if request.method == 'POST':
+        designation = request.form['designation']
+        phone = request.form['phone']
+        location = request.form['location']
+
+        update_doctor_profile(d_id, designation, phone, location)
+        flash("Doctor profile updated successfully")
+        return redirect(url_for('doctor_dashboard'))
+
+    doctor = get_doctor_by_id(d_id)
+    if doctor:
+        return render_template('update_doctor_profile.html', doctor=doctor)
+    else:
+        flash("No data found for this patient.")
+        return 'Doctor not found', 404
+
+#---------------Ansghu m3+m4 ends----------------------------
 
 
 #############################################

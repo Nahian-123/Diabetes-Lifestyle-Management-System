@@ -48,3 +48,4 @@ def insert_notice(sender_id, recipient_type, recipient_id, message, date):
     connection.commit()
     cursor.close()
     connection.close()
+
