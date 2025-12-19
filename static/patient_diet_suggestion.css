@@ -1,0 +1,186 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6fb;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    color: #1A272F;
+    margin-bottom: 20px;
+}
+
+/* .diet-summary {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.diet-summary p {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.meal-section {
+    margin-top: 15px;
+}
+
+.meal-section h5 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.meal-section ul {
+    list-style-type: disc;
+    margin-left: 20px;
+}
+
+.meal-section li {
+    font-size: 16px;
+    margin-bottom: 4px;
+} */
+
+/* Diet Summary Modern Styles */
+.diet-summary {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px 25px;
+    margin-bottom: 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1A272F;
+    font-size: 1.2rem;
+}
+
+.diet-summary p {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+}
+
+.diet-summary b {
+    color: #4F9B91; /* Primary accent for labels */
+}
+
+.meal-section {
+    margin-top: 20px;
+    padding: 15px 20px;
+    background: #F4F6FB;
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.meal-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+.meal-section h5 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+    color: #1A272F;
+}
+
+.meal-section ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.meal-section ul li {
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+    line-height: 1.5;
+    color: #333333;
+}
+
+.sidebar-logo-img {
+    width: 150px;          
+    height: 150px;         
+    object-fit: cover;     
+    border-radius: 50%;    
+    border: 3px solid #007bff; 
+}
+
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+.sidebar-sticky .nav-link {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color:  #8b99aa; 
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}
+
+
+
+.flash-box {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    opacity: 0;
+    z-index: 9999;
+    animation: fadeInOut 5s ease-in-out forwards;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.flash-success {
+    background-color: #28a745;
+}
+
+.flash-error {
+    background-color: #dc3545;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.content {
+    padding-left: 20px;
+}
+
+
+.container-fluid {
+    background: linear-gradient(to right, rgba(173, 216, 230, 0.6) 20%, rgba(255, 255, 255, 0.0) 80%);
+}
+

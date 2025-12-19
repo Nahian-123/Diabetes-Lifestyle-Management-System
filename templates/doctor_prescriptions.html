@@ -298,6 +298,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('doctor_diet_suggestion') }}">
+                            <i class="bi bi-file-text-fill"></i> Suggest Diet Plan
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link active" href="{{ url_for('doctor_prescriptions') }}">
                             <i class="bi bi-file-text-fill"></i> Write Prescription
                         </a>
@@ -316,7 +321,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('my_reviews') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_reviews') }}">
                             <i class="bi bi-star-fill"></i> My Reviews
                         </a>
                     </li>
@@ -509,6 +514,23 @@
                 <i class="fas fa-chart-line"></i> Weekly Number of times for SMBG
             </label>
             <textarea id="weekly_smbg" name="weekly_smbg" rows="2" placeholder="e.g., 3" required></textarea>
+        </div>
+        <br>
+
+        <!-- ✅ FOLLOW-UP DATE (NEW) -->
+        <div class="med-card details-card">
+            <label for="followup_date">
+                <i class="fas fa-calendar-check"></i> Follow-up Visit Date
+            </label>
+            <input 
+                type="date" 
+                id="followup_date" 
+                name="followup_date" 
+                required
+            >
+            <!-- <small style="color:#555;">
+                Select the recommended date for the patient’s next follow-up visit
+            </small> -->
         </div>
         <br>
 

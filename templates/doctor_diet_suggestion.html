@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diet Suggestion</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+/* --- Base Font --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    background-color: #f4f6fb;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Sidebar --- */
+
+
+
+
+.sidebar-sticky {
+    padding-top: 20px;
+    height: 100vh;
+    background-color: #f8f9fa;
+}
+
+
+.sidebar-logo-img {
+    width: 150px;          /* adjust size as needed */
+    height: 150px;         /* must be equal to width */
+    object-fit: cover;     /* crops the image to fill the circle */
+    border-radius: 50%;    /* makes it a circle */
+    border: 3px solid #007bff; /* optional: add blue border */
+}
+
+
+.sidebar-sticky .nav-link {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    color: #333;
+    background-color: #8b99aa;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+
+.sidebar-sticky .nav-link:hover {
+    background-color: #007bff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.sidebar-sticky .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.sidebar-sticky .nav-link i {
+    margin-right: 8px;
+}
+
+/* Main content font scaling */
+.main-content,
+.content,
+.container-fluid {
+    font-size: 20px;
+}
+
+
+/* --- Category Tabs --- */
+.category-tabs a {
+    margin-right: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+    display: inline-block;
+}
+.category-tabs a.active { filter: brightness(0.9); }
+
+/* Category Colors */
+.category-tabs a.carbs { background-color: #E1C57B; color:#1A272F; }
+.category-tabs a.protein { background-color: #EAA56C; color:#1A272F; }
+.category-tabs a.vegetable { background-color: #4F9B91; color:#fff; }
+.category-tabs a.fruits { background-color: #E39885; color:#1A272F; }
+.category-tabs a.dairy { background-color: #798C96; color:#fff; }
+.category-tabs a.healthy_fats { background-color: #1A272F; color:#fff; }
+
+.category-tabs a:hover { filter: brightness(0.9); }
+
+/* --- Food Cards --- */
+.food-card {
+    background: #fff;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.food-info { display:flex; flex-direction:column; }
+.food-info b { font-size: 1rem; }
+.food-info span { font-size:0.9rem; color:#555; }
+
+/* --- Buttons --- */
+.btn-add {
+    background-color: #1A272F;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.btn-add:hover { background-color: #4F9B91; color: #fff; }
+
+.btn-confirm {
+    background-color: #4F9B91;
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+.btn-confirm:hover:not(:disabled) { background-color: #3f857f; }
+.btn-confirm:disabled { background-color: #d3f3eb; color: #999; cursor: not-allowed; }
+
+.btn-clear {
+    background-color: #E39885;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+.btn-clear:hover { background-color: #EAA56C; color: #1A272F; }
+
+
+/* ===============================
+   Buttons & Category UI Enhancements
+   (Points 3, 4, 5 combined)
+================================= */
+
+/* --- Category Tabs: softer & lighter --- */
+.category-tabs a {
+    margin-right: 8px;
+    padding: 7px 16px;
+    border-radius: 18px;
+    font-weight: 500;
+    opacity: 0.85;
+    white-space: nowrap;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.category-tabs a:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* --- Add Button: wider, single-line icon + text --- */
+.btn-add {
+    min-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    padding: 6px 14px;
+}
+
+/* --- Confirm Diet Button: proper disabled state --- */
+.btn-confirm:disabled {
+    background-color: #cfcfcf !important;
+    color: #6f6f6f !important;
+    cursor: not-allowed;
+    box-shadow: none;
+    border: none;
+}
+
+.btn-confirm:disabled:hover {
+    background-color: #cfcfcf;
+}
+
+/* ===============================
+   Diet Suggestion Content Font Scaling
+================================= */
+
+/* Inputs & dropdown text */
+input.form-control,
+select.form-select,
+select.form-select-sm {
+    font-size: 17px;
+}
+
+/* Calculate button */
+button.btn-primary {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* Food card text */
+.food-info b {
+    font-size: 17px;
+}
+
+.food-info span {
+    font-size: 15px;
+}
+
+/* Meal dropdown & quantity input */
+.food-card select,
+.food-card input[type="number"] {
+    font-size: 16px;
+}
+
+/* Add button (text + icon) */
+.btn-add {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Diet summary text */
+.diet-summary h5 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.diet-summary p,
+.diet-summary li {
+    font-size: 16px;
+}
+
+
+/* --- Diet Summary --- */
+.diet-summary { 
+    background:white; border-radius:8px; 
+    padding:15px; margin-top:10px; 
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* --- Progress Bar --- */
+.progress { height:20px; margin-bottom:10px; border-radius:10px; }
+.progress-bar { font-size:0.8rem; }
+
+
+/* --- Flash Messages --- */
+#flash-container .alert {
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+/* Success */
+.alert-success {
+    background-color: #e6f6ee;
+    color: #1e6b43;
+    border-color: #b8e6cc;
+}
+
+/* Error / Danger */
+.alert-danger {
+    background-color: #fdecea;
+    color: #a4262c;
+    border-color: #f5c2c7;
+}
+
+/* Optional: warning */
+.alert-warning {
+    background-color: #fff4e5;
+    color: #8a4b00;
+    border-color: #ffddb3;
+}
+
+
+/* --- Inputs --- */
+input[type=number], select.form-select {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fafafa;
+    color: #333;
+}
+input[type=number]:disabled, select:disabled {
+    background-color: #e9ecef;
+}
+
+/* ➕ Plus button (Teal - Primary Accent) */
+.btn-plus {
+    background-color: #4F9B91;
+    color: #fff;
+    border: none;
+}
+.btn-plus:hover:not(:disabled) {
+    background-color: #3f857f;
+}
+
+/* ➖ Minus button (Healthy Fats color) */
+.btn-minus {
+    background-color: #1A272F;
+    color: #fff;
+    border: none;
+}
+.btn-minus:hover:not(:disabled) {
+    background-color: #111b21;
+}
+
+/* Disabled state */
+.btn-plus:disabled,
+.btn-minus:disabled {
+    background-color: #d6d6d6 !important;
+    color: #888 !important;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ===============================
+   Bigger Plus / Minus Controls
+================================= */
+
+.btn-control {
+    width: 50px;
+    height: 50px;
+    font-size: 30px;
+    font-weight: 700;
+    /* border-radius: 10px; */
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.category-tabs a.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Meal panel distinct from category tabs */
+.meal-tabs {
+    padding: 8px 12px;
+    background-color: #c1c6c9; /* light blue background */
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.meal-tabs .mealtime-label {
+    font-weight: 600;
+    color: #1A272F;
+    margin-right: 8px;
+}
+
+.meal-tabs button.meal-btn {
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-weight: 500;
+    background-color: #fff;
+    /* border: 1px solid #4F9B91; */
+    border:none;
+    color: #4F9B91;
+    transition: all 0.2s ease;
+}
+
+.meal-tabs button.meal-btn.active {
+    background-color: #4F9B91;
+    color: #fff;
+}
+
+.meal-tabs button.meal-btn:hover {
+    background-color: #3f857f;
+    color: #fff;
+}
+
+/* Flash container positioning so it doesn't push content */
+#flash-container {
+    position: fixed;   /* overlays page */
+    top: 20px;
+    /* right: 20px; */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;     /* above other elements */
+    width: 80%;
+    max-width: 800px;
+}
+
+/* Smooth fade-out */
+#flash-container .alert {
+    opacity: 1;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    transform: translateY(0);
+}
+
+#flash-container .alert.fade-out {
+    opacity: 0;
+    transform: translateY(-20px); /* float upwards while fading */
+}
+
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky text-center">
+        <div class="sidebar-logo my-3">
+          <img src="{{ url_for('static', filename='DLMS logo.png') }}" class="sidebar-logo-img" alt="Logo">
+          <h5 class="mt-2 fw-bold">DLMS</h5>
+        </div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_dashboard') }}"><i class="bi bi-grid-fill"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('update_doctor_profile') }}"><i class="bi bi-person-fill"></i> Update Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('update_schedule') }}"><i class="bi bi-clock-fill"></i> Update Schedule</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_appointments') }}"><i class="bi bi-calendar-check-fill"></i> Appointments</a></li>
+          <li class="nav-item"><a class="nav-link active" href="{{ url_for('doctor_diet_suggestion') }}"><i class="bi bi-file-text-fill"></i> Diet Suggestion</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_prescriptions') }}"><i class="bi bi-file-text-fill"></i> Write Prescription</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_all_previous_prescriptions') }}"><i class="bi bi-list-task"></i> View Prescriptions</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('my_zoom_meetings') }}"><i class="bi bi-camera-video-fill"></i> Zoom Meetings</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('doctor_reviews') }}"><i class="bi bi-star-fill"></i> My Reviews</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <!-- <main class="col-md-10 ms-sm-auto px-4">
+      <h2 class="mt-3">Diet Suggestion</h2> -->
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Diet Suggestion</h1>
+            <p class="doctor-id text-center">Your ID: {{ d_id }}</p>
+        </div>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mt-2" id="flash-container">
+            {% for category, msg in messages %}
+              <!-- <div class="alert alert-dismissible fade show" role="alert"> -->
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">  
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Patient Input -->
+      <div class="card mb-3 p-3">
+        <form method="POST" class="row g-2 align-items-center">
+          <div class="col-md-3">
+            <input type="text" name="p_id" class="form-control" placeholder="Patient ID" value="{{ diet.p_id or '' }}" required>
+          </div>
+          <div class="col-md-3">
+            <select name="activity_lvl" class="form-select">
+              <option value="sedentary" {% if diet.activity_lvl=='sedentary' %}selected{% endif %}>Sedentary</option>
+              <option value="moderate" {% if diet.activity_lvl=='moderate' %}selected{% endif %}>Moderate</option>
+              <option value="active" {% if diet.activity_lvl=='active' %}selected{% endif %}>Active</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select name="diabetes_condition" class="form-select">
+              <option {% if diet.diabetes_condition=='Type 1 Diabetes' %}selected{% endif %}>Type 1 Diabetes</option>
+              <option {% if diet.diabetes_condition=='Type 2 Diabetes' %}selected{% endif %}>Type 2 Diabetes</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button name="action" value="calculate" class="btn btn-primary w-100">Calculate</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Food & Summary Row -->
+      <div class="row">
+        <!-- Left: Food List -->
+        <div class="col-md-7">
+
+
+          <!-- Meal Selection Panel -->
+          <div class="meal-tabs mb-2">
+            <span class="mealtime-label">Select Meal:</span>
+            <button type="button" class="btn btn-outline-primary meal-btn" data-meal="breakfast">Breakfast</button>
+            <button type="button" class="btn btn-outline-primary meal-btn" data-meal="lunch">Lunch</button>
+            <button type="button" class="btn btn-outline-primary meal-btn" data-meal="dinner">Dinner</button>
+          </div>
+
+
+
+
+
+
+          <div class="category-tabs mb-2">
+            <a href="?category=carbs&meal={{ selected_meal }}" class="{% if diet.category=='carbs' %}active{% endif %} carbs">Carbs</a>
+            <a href="?category=protein&meal={{ selected_meal }}" class="{% if diet.category=='protein' %}active{% endif %} protein">Protein</a>
+            <a href="?category=vegetable&meal={{ selected_meal }}" class="{% if diet.category=='vegetable' %}active{% endif %} vegetable">Vegetables</a>
+            <a href="?category=fruits&meal={{ selected_meal }}" class="{% if diet.category=='fruits' %}active{% endif %} fruits">Fruits</a>
+            <a href="?category=dairy&meal={{ selected_meal }}" class="{% if diet.category=='dairy' %}active{% endif %} dairy">Dairy</a>
+            <a href="?category=healthy_fats&meal={{ selected_meal }}" class="{% if diet.category=='healthy_fats' %}active{% endif %} healthy_fats">Healthy Fats</a>
+          </div>
+
+
+          <!-- Food item card fields-->
+
+
+          {% for food in foods %}
+
+
+
+
+          <div class="food-card">
+            <div class="food-info">
+              <b>{{ food.item }}</b>
+              <span>{{ food.calory }} kcal</span>
+            </div>
+
+
+            <form method="POST" class="d-flex align-items-center gap-2">
+              <input type="hidden" name="item" value="{{ food.item }}">
+              <input type="hidden" name="calory" value="{{ food.calory }}">
+              <input type="hidden" name="meal" class="meal-input" value="{{ diet.selected_meal or '' }}">
+
+
+              <input type="hidden" name="category" value="{{ category }}">
+
+
+             
+              <button name="action"
+                      value="minus"
+                      class="btn btn-minus btn-control"
+                     
+                      {% if not diet.daily_cal or food.item not in added_items %}disabled{% endif %}>
+                −
+              </button>
+
+
+             
+              <button name="action"
+                      value="plus"
+                      class="btn btn-plus btn-control"
+                      {% if not diet.daily_cal
+                        or diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal + food.calory > diet.daily_cal %}
+                        disabled
+                      {% endif %}>
+                +
+              </button>
+            </form>
+          </div>
+          {% endfor %}
+
+
+
+
+
+
+
+
+
+
+          <!-- Progress Bar -->
+          <div class="mt-3">
+            <div>Calories Used: {{ diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal }} / {{ diet.daily_cal }} kcal</div>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" style="width: {{ ((diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal)/diet.daily_cal)*100 if diet.daily_cal else 0 }}%;" aria-valuenow="{{ diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal }}" aria-valuemin="0" aria-valuemax="{{ diet.daily_cal }}">
+                {{ diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal }} kcal
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Right: Diet Summary -->
+        <div class="col-md-5">
+          <div class="diet-summary">
+            <h5>Diet Summary</h5>
+            <p><b>Daily Allowance:</b> {{ diet.daily_cal }} kcal</p>
+
+
+            {% for meal in ['breakfast','lunch','dinner'] %}
+              <p><b>{{ meal|capitalize }}:</b> {{ diet[meal+'_cal'] }} kcal</p>
+              {% if diet[meal] %}
+                <ul class="meal-items">
+                  {% for f in diet[meal] %}
+                    <li>{{ f.item }} x {{ f.quantity }} ({{ f.calory }} kcal)</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            {% endfor %}
+
+
+            <form method="POST" class="mt-2">
+              <button name="action" value="confirm" class="btn btn-confirm w-100"
+                      {% if not diet.daily_cal or (diet.breakfast_cal + diet.lunch_cal + diet.dinner_cal) == 0 %}disabled{% endif %}>
+                Confirm Diet Plan
+              </button>
+            </form>
+            <a href="{{ url_for('clear_diet') }}" class="btn btn-clear w-100 mt-2">Clear Diet</a>
+          </div>
+
+          <!-- Latest Diet Plan Button -->
+          <div class="mt-3">
+              {% if diet.p_id %}
+                  <a href="{{ url_for('latest_diet_plan', p_id=diet.p_id,d_id=d_id) }}" 
+                    class="btn btn-outline-primary w-100">
+                    View Previous Diet Plan
+                  </a>
+              {% else %}
+                  <button class="btn btn-outline-primary w-100" disabled>
+                      View Latest Diet Plan
+                  </button>
+              {% endif %}
+          </div>
+
+
+
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+      
+<script>
+let selectedMeal = "{{ diet.selected_meal or '' }}";
+
+const mealButtons = document.querySelectorAll('.meal-btn');
+const mealInputs = document.querySelectorAll('.meal-input');
+const categoryTabs = document.querySelectorAll('.category-tabs a');
+
+/* -----------------------------
+   INITIAL STATE
+------------------------------*/
+
+// Disable meal buttons until calories calculated
+mealButtons.forEach(btn => btn.disabled = true);
+categoryTabs.forEach(tab => tab.classList.add('disabled'));
+
+// Enable meal buttons if daily calories already calculated
+{% if diet.daily_cal %}
+mealButtons.forEach(btn => btn.disabled = false);
+{% endif %}
+
+// Restore previously selected meal after page reload
+if (selectedMeal) {
+    mealButtons.forEach(btn => {
+        if (btn.dataset.meal === selectedMeal) btn.classList.add('active');
+    });
+
+    categoryTabs.forEach(tab => tab.classList.remove('disabled'));
+
+    // Update category hrefs to include selected meal
+    categoryTabs.forEach(tab => {
+        const url = new URL(tab.href, window.location.origin);
+        url.searchParams.set('meal', selectedMeal);
+        tab.href = url.toString();
+    });
+
+    mealInputs.forEach(input => input.value = selectedMeal);
+}
+
+/* -----------------------------
+   MEAL BUTTON CLICK
+------------------------------*/
+mealButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedMeal = btn.dataset.meal;
+
+        // Highlight active meal
+        mealButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Enable category buttons and update their href dynamically
+        categoryTabs.forEach(tab => {
+            tab.classList.remove('disabled');
+
+            const url = new URL(tab.href, window.location.origin);
+            url.searchParams.set('meal', selectedMeal);
+            tab.href = url.toString();
+        });
+
+        // Update hidden input in food item forms
+        mealInputs.forEach(input => input.value = selectedMeal);
+    });
+});
+
+/* -----------------------------
+   CATEGORY CLICK SAFETY
+------------------------------*/
+categoryTabs.forEach(tab => {
+    tab.addEventListener('click', e => {
+        if (tab.classList.contains('disabled')) {
+            e.preventDefault();
+            alert('Please select a meal first');
+        }
+    });
+});
+
+/* -----------------------------
+   PLUS / MINUS SAFETY
+------------------------------*/
+document.querySelectorAll('.btn-plus, .btn-minus').forEach(btn => {
+    btn.addEventListener('click', e => {
+        if (!selectedMeal) {
+            e.preventDefault();
+            alert('Please select a meal first');
+        }
+    });
+});
+
+// Auto-hide flash messages with smooth fade
+window.addEventListener('DOMContentLoaded', () => {
+    const flashContainer = document.querySelector('#flash-container');
+    if (!flashContainer) return;
+
+    const flashMessages = flashContainer.querySelectorAll('.alert');
+    flashMessages.forEach(alert => {
+        // Wait 3 seconds, then fade out
+        setTimeout(() => {
+            alert.classList.add('fade-out');
+
+            // Remove from DOM after transition ends
+            alert.addEventListener('transitionend', () => {
+                alert.remove();
+            });
+        }, 3000); // 3 seconds
+    });
+});
+
+
+</script>
+
+
+
+      
+</body>
+</html>
+
+
+
+
+
+
+
+
