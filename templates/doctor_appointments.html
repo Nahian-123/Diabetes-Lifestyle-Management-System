@@ -237,6 +237,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('doctor_diet_suggestion') }}">
+                            <i class="bi bi-file-text-fill"></i> Suggest Diet Plan
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('doctor_prescriptions') }}">
                             <i class="bi bi-file-text-fill"></i> Write Prescription
                         </a>
@@ -252,7 +257,7 @@
                         </a>
                     </li>
                      <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('my_reviews') }}">
+                        <a class="nav-link" href="{{ url_for('doctor_reviews') }}">
                             <i class="bi bi-star-fill"></i> My Reviews
                         </a>
                     </li>
@@ -344,7 +349,8 @@
                             <form action="{{ url_for('doctor_appointments') }}" method="post">
                                 <input type="hidden" name="app_id" value="{{ row.app_id }}">
                                 <input type="hidden" name="action" value="">
-                                <button type="button" class="action-btn btn-black" onclick="confirmAction(this, 'Confirm')">Confirm</button><br>
+                                <!-- <button type="button" class="action-btn btn-black" onclick="confirmAction(this, 'Confirm')">Confirm</button><br> -->
+                                <button type="button" class="action-btn btn-black" onclick="confirmAction(this, 'Confirm')"  {% if not google_connected %}disabled{% endif %}>Confirm</button><br>
                                 <button type="button" class="action-btn btn-red" onclick="confirmAction(this, 'Cancel')">Cancel</button>
                                 <button type="button" class="action-btn btn-ash" onclick="confirmAction(this, 'Reschedule')">Reschedule</button>
                             </form>

@@ -47,7 +47,7 @@ def get_patient_info_for_prescription(p_id, d_id):
             TIMESTAMPDIFF(YEAR, p.dob, CURDATE()) AS age
         FROM patient p
         JOIN appointment a ON p.p_id = a.p_id
-        WHERE p.p_id = %s AND a.d_id = %s
+        WHERE p.p_id = %s AND a.d_id = %s ORDER BY a.date DESC;
     """
 
     cursor.execute(query, (p_id, d_id))
@@ -142,3 +142,17 @@ def get_prescription_by_id(pres_id):
     return prescription
 
 #============NAHIAN M3 ENDS HERE==================  
+
+#==========LABIBA M3 Starts==============================================================
+def update_patient_followup(p_id,followup_date):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE patient
+        SET followup_date = %s
+        WHERE p_id = %s
+    """, (followup_date, p_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+#==========LABIBA M3 ends==============================================================

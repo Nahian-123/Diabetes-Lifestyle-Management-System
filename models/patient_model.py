@@ -154,7 +154,7 @@ def get_patient_required_fields(p_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     sql= """
-        SELECT name, dob, weight, gender,
+        SELECT name, dob, phone, weight, height_cm, gender,
                gl_b_breakfast, gl_a_breakfast,
                gl_b_lunch, gl_b_dinner 
         FROM patient 
@@ -623,22 +623,22 @@ def get_doctor_slots(d_id):
     conn.close()
     return slots
 
-def get_patient_required_fields(p_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    sql= """
-        SELECT name, dob, weight, gender,
-               gl_b_breakfast, gl_a_breakfast,
-               gl_b_lunch, gl_b_dinner
-        FROM patient 
-        WHERE p_id = %s
-        """
-    cursor.execute(sql, (p_id,))
-    required_fields= cursor.fetchone()
+# def get_patient_required_fields(p_id):
+#     conn = get_db_connection()
+#     cursor = conn.cursor(dictionary=True)
+#     sql= """
+#         SELECT name, dob, weight, gender,
+#                gl_b_breakfast, gl_a_breakfast,
+#                gl_b_lunch, gl_b_dinner
+#         FROM patient 
+#         WHERE p_id = %s
+#         """
+#     cursor.execute(sql, (p_id,))
+#     required_fields= cursor.fetchone()
     
-    cursor.close()
-    conn.close()
-    return required_fields
+#     cursor.close()
+#     conn.close()
+#     return required_fields
 
 def check_appointment_next_week(p_id, today, next_7_days):
     """

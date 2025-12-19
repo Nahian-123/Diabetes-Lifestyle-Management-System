@@ -125,6 +125,13 @@
                             <i class="bi bi-calendar-check-fill"></i> Appointments
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('doctor_diet_suggestion') }}">
+                            <i class="bi bi-file-text-fill"></i> Suggest Diet Plan
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('doctor_prescriptions') }}">
                             <i class="bi bi-file-text-fill"></i> Write Prescription
@@ -144,7 +151,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ url_for('doctor_reviews') }}">
                             <i class="bi bi-star-fill"></i> My Reviews
                         </a>
                     </li>

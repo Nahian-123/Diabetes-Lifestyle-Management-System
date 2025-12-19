@@ -22,10 +22,10 @@ from models.admin_model import insert_notice, get_dashboard_stats, get_all_docto
 from models.email_sender import send_doctor_approval_email, send_doctor_rejection_email
 from models.payment_model import verify_card_details, finalize_telemedicine_transaction  # Angshu M2 payment model imports
 from models.appointment_model import get_latest_appointment  # Angshu M2 appointment model import
-# For Google Calendar API
-# from googleapiclient.discovery import build
-# from google.oauth2.credentials import Credentials
-# from google_auth_oauthlib.flow import Flow
+#For Google Calendar API
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
 import os
 from models.ai_assistant_model import get_llama_response #new line by angshu
 # Google Calendar API Setup
@@ -513,6 +513,11 @@ def doctor_appointments():
         app_id = request.form.get('app_id')
         action = request.form.get('action')
 
+        # 🚨 BLOCK CONFIRM IF GOOGLE CALENDAR NOT CONNECTED
+        if action == "Confirm" and not session.get("google_calendar_connected"):
+            flash("Please connect Google Calendar before confirming appointments.", "error")
+            return redirect(url_for("doctor_appointments"))
+
         update_appointment_status(app_id, d_id, action)
 
         #==========NAHIIAN M3 starts===========       
@@ -592,7 +597,11 @@ def doctor_appointments():
     for appointment in appointments:
         appointment['age'] = calculate_age(appointment['dob'])
 
-    return render_template('doctor_appointments.html', appointments=appointments, d_id=d_id)
+    google_connected = session.get("google_calendar_connected", False)
+    
+
+
+    return render_template('doctor_appointments.html', appointments=appointments, d_id=d_id, google_connected=google_connected)
 
 #==========NAHIIAN M2 ends===========
 
@@ -672,6 +681,10 @@ def patient_dashboard():
     zoom_meeting_id = patient.get('zoom_meeting_id')
     zoom_password = patient.get('zoom_password')
 
+    # Fetch patient["followup_date"]
+    patient_details = get_patient_details(p_id) # Fetch again to get fresh followup_date
+    followup = patient_details.get("followup_date")
+
     return render_template('patient_dashboard.html',
         name=patient['name'],
         p_id=p_id,
@@ -685,7 +698,9 @@ def patient_dashboard():
         zoom_meeting_link=zoom_meeting_link,
         zoom_meeting_id=zoom_meeting_id,
         zoom_password=zoom_password,
-        notices=notices) #new line by angshu  
+        notices=notices,  #new line by angshu 
+        followup_date= followup #new line by labiba
+        )  
 
 #==========LABIBA M1 ends=====================================================================
 
@@ -929,7 +944,7 @@ def request_appointment_progress():
         'gl_b_lunch', 'gl_b_dinner'
     ]
     # Check if all required fields are not None or empty string
-    if  all(patient_fields.get(f)  in (None, '', 'None') for f in required_fields):
+    if  any(patient_fields.get(f)  in (None, '', 'None') for f in required_fields):
         flash("Error: Please complete your profile details (dob, phone, weight, gender, glucose levels) before booking an appointment.")
         return redirect(url_for('update_patient_profile')) # Redirect to profile update
 
@@ -1029,8 +1044,11 @@ def oauth2callback():
         "client_secret": credentials.client_secret,
         "scopes": credentials.scopes,
     }
-    print("Google Calendar linked successfully!", "success")
+
     
+    print("Google Calendar linked successfully!", "success")
+    session["google_calendar_connected"] = True
+
     flash("Google Calendar linked successfully!", "success")
     return redirect(url_for("doctor_appointments"))
 
@@ -1362,7 +1380,7 @@ def patient_upcoming_appointments():
 #==NAHIAN m3================= Prescription for Doctor + Patient ==============
 #updated prescription with patient search
 from datetime import datetime
-from models.prescription_model import get_all_doctor_previous_prescriptions,search_patient_for_prescription, get_patient_info_for_prescription, get_doctor_info_for_prescription, insert_prescription, get_prescriptions_by_patient, get_patient_prescription, get_doctor_name_for_each_prescription, get_prescription_by_id
+from models.prescription_model import get_all_doctor_previous_prescriptions,search_patient_for_prescription, get_patient_info_for_prescription, get_doctor_info_for_prescription, insert_prescription, get_prescriptions_by_patient, get_patient_prescription, get_doctor_name_for_each_prescription, get_prescription_by_id,update_patient_followup
 
 @app.route('/doctor_all_previous_prescriptions')
 def doctor_all_previous_prescriptions():
@@ -1402,6 +1420,7 @@ def doctor_prescriptions():
         
         
         patient = get_patient_info_for_prescription(d_id, p_id)
+        print("appointment ID: ", patient["app_id"])
         # Validation2: ensure this patient has an appointment with this doctor
         if not patient:
             flash("This patient does not have any appointment with you.", "error")
@@ -1439,9 +1458,12 @@ def doctor_prescriptions():
         night = request.form.get('night')
         date = datetime.today().strftime('%Y-%m-%d')
         weekly_smbg = request.form.get('weekly_smbg')
+        followup_date = request.form['followup_date'] #LABIBA M3
 
         # Insert prescription
         insert_prescription(p_id, d_id, detail, date, morning, afternoon, night, weekly_smbg)
+
+        update_patient_followup(p_id,followup_date) #LABIBA M3
 
         flash("Prescription added successfully!", "success")
         return redirect(url_for('doctor_prescriptions'))
@@ -1805,6 +1827,293 @@ def api_complete_ride():
     p_id = session['user_id']
     result = mark_ride_completed(p_id)
     return jsonify(result)
+
+
+#===========LABIBA M3+M4 starts==========================================
+from models.diet_suggestion_model import *
+
+
+@app.route('/doctor_diet_suggestion', methods=['GET', 'POST'])
+def doctor_diet_suggestion():
+    # -------------------------------
+    # SESSION CHECK
+    # -------------------------------
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.", "danger")
+        return redirect(url_for('login'))
+
+    d_id = session['user_id']
+
+    # -------------------------------
+    # INITIALIZE DIET SESSION
+    # -------------------------------
+    if 'diet' not in session:
+        session['diet'] = {
+            'p_id': '',
+            'activity_lvl': '',
+            'diabetes_condition': '',
+            'category': '',
+            'breakfast': [],
+            'lunch': [],
+            'dinner': [],
+            'breakfast_cal': 0,
+            'lunch_cal': 0,
+            'dinner_cal': 0,
+            'daily_cal': 0,
+            'selected_meal': None  # 
+        }
+
+    diet = session['diet']
+
+    # -------------------------------
+    # HANDLE MEAL (SESSION-FIRST)
+    # -------------------------------
+    selected_meal = diet.get('selected_meal')
+    meal_arg = request.args.get('meal') 
+    # Fix: handle "None" string
+    if meal_arg in ('breakfast', 'lunch', 'dinner'):
+        selected_meal = meal_arg
+    diet['selected_meal'] = selected_meal
+    # -------------------------------
+    # HANDLE CATEGORY & MEAL (GET)
+    # -------------------------------
+    category = request.args.get('category') or diet.get('category', '')
+    diet['category'] = category
+
+    
+
+
+    # ============================================================
+    # POST HANDLING (ALL LOGIC MERGED)
+    # ============================================================
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        # ---------------------------
+        # 1️⃣ CALCULATE DAILY CALORIES
+        # ---------------------------
+        if action == 'calculate':
+            p_id = request.form.get('p_id')
+            patient_exist = get_patient(p_id)
+            if not patient_exist:
+                flash("Invalid Patient ID", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+
+            patient_fields = get_patient_required_fields(p_id)
+            required_fields = [
+                'name', 'dob', 'phone', 'weight', 'height_cm','gender',
+                'gl_b_breakfast', 'gl_a_breakfast',
+                'gl_b_lunch', 'gl_b_dinner'
+            ]
+            # Check if all required fields are not None or empty string
+            if  any(patient_fields.get(f)  in (0.00, None, '', 'None', "NULL") for f in required_fields):
+                flash("Error: Patient not applicable for diet plan suggestion due to incomplete profile.", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+            
+            activity = request.form.get('activity_lvl')
+            diabetes_condition = request.form.get('diabetes_condition')
+
+            # Clear previous diet if patient changes
+            if diet.get('p_id') != p_id:
+                diet.update({
+                    'breakfast': [],
+                    'lunch': [],
+                    'dinner': [],
+                    'breakfast_cal': 0,
+                    'lunch_cal': 0,
+                    'dinner_cal': 0,
+                    'daily_cal': 0
+                })
+
+            patient = get_patient(p_id)
+            if not patient:
+                flash("Invalid Patient ID", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+
+            age = date.today().year - patient['dob'].year
+            daily_cal = calculate_daily_cal(
+                age,
+                patient['gender'],
+                patient['weight'],
+                patient['height_cm'],
+                activity
+            )
+
+            diet.update({
+                'p_id': p_id,
+                'activity_lvl': activity,
+                'diabetes_condition': diabetes_condition,
+                'daily_cal': daily_cal
+            })
+
+            session.modified = True
+            return redirect(url_for('doctor_diet_suggestion', category=category, meal=diet.get('selected_meal')))
+
+        # ---------------------------
+        # 2️⃣ PLUS / MINUS FOOD ITEM
+        # ---------------------------
+        elif action in ('plus', 'minus'):
+            if not diet.get('daily_cal'):
+                flash("Please calculate daily calories first.", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+
+            meal = request.form.get('meal')
+            
+
+            if meal in (None, '', 'None'):
+                # fallback to previously selected meal in session
+                meal = diet.get('selected_meal')
+            if meal not in ('breakfast', 'lunch', 'dinner'):
+                flash("Please select a meal first.", "danger")
+                return redirect(url_for('doctor_diet_suggestion', category=category, meal=diet.get('selected_meal')))
+            
+            # Save the selected meal in session
+            diet['selected_meal'] = meal
+
+            item = request.form.get('item')
+            cal_per_unit = int(request.form.get('calory'))
+
+            items = diet[meal]
+            existing = next((f for f in items if f['item'] == item), None)
+
+            used = diet['breakfast_cal'] + diet['lunch_cal'] + diet['dinner_cal']
+
+            # ➕ PLUS
+            if action == 'plus':
+                if used + cal_per_unit > diet['daily_cal']:
+                    flash("Daily calorie limit exceeded.", "danger")
+                    return redirect(url_for('doctor_diet_suggestion', category=category, meal=diet.get('selected_meal')))
+
+                if existing:
+                    existing['quantity'] += 1
+                    existing['calory'] += cal_per_unit
+                else:
+                    items.append({
+                        'category': category,
+                        'item': item,
+                        'quantity': 1,
+                        'calory': cal_per_unit
+                    })
+
+                diet[f'{meal}_cal'] += cal_per_unit
+
+            # ➖ MINUS
+            elif action == 'minus' and existing:
+                existing['quantity'] -= 1
+                existing['calory'] -= cal_per_unit
+                diet[f'{meal}_cal'] -= cal_per_unit
+
+                if existing['quantity'] <= 0:
+                    items.remove(existing)
+
+            session.modified = True
+            return redirect(url_for('doctor_diet_suggestion', category=category, meal=diet.get('selected_meal')))
+
+        # ---------------------------
+        # 3️⃣ CONFIRM DIET PLAN
+        # ---------------------------
+        elif action == 'confirm':
+            total_cal = diet['breakfast_cal'] + diet['lunch_cal'] + diet['dinner_cal']
+
+            if not diet.get('daily_cal'):
+                flash("Please calculate daily calories first.", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+
+            if total_cal == 0:
+                flash("Please add at least one food item.", "danger")
+                return redirect(url_for('doctor_diet_suggestion'))
+
+            save_diet(d_id, diet)
+            session.pop('diet', None)
+            flash("Diet plan saved successfully.", "success")
+            return redirect('/diet_plan_created')
+
+    # ============================================================
+    # FETCH FOODS (GET RENDER)
+    # ============================================================
+    foods = get_foods(category) if category else []
+
+
+    # ============================================================
+    # Build a set of all added items
+    # ============================================================
+    added_items = set()
+    for meal in ['breakfast','lunch','dinner']:
+        for f in diet[meal]:
+            added_items.add(f['item'])
+
+
+    return render_template(
+        'doctor_diet_suggestion.html',
+        diet=diet,
+        foods=foods,
+        category=category,
+        selected_meal=selected_meal,
+        d_id=d_id,
+        added_items=added_items
+    )
+
+
+# Optional: Clear diet plan route
+@app.route('/clear_diet')
+def clear_diet():
+    session.pop('diet', None)
+    flash("Diet plan cleared. You can enter a new patient now.", "success")
+    return redirect(url_for('doctor_diet_suggestion'))
+
+@app.route('/diet_plan_created')
+def diet_plan_created():
+    if 'user_id' not in session:
+        flash("Session expired. Please login again.", "danger")
+        return redirect(url_for('login'))
+
+    return render_template(
+        'diet_plan_created.html',
+        success="Diet Plan has been created successfully",
+        redirect_url=url_for('doctor_dashboard')  # change if needed
+    )
+@app.route('/latest_diet_plan/<p_id>/<d_id>')
+def latest_diet_plan(p_id,d_id):
+    # Fetch the latest diet plan for this patient
+    latest_diet = get_latest_diet_suggestion(p_id)  
+    if not latest_diet:
+        flash('No Diet Plan has been previously suggested for this patient.', 'danger')
+        return redirect(url_for('doctor_diet_suggestion'))
+    doctor_name = get_doctor_name(latest_diet['d_id']) if latest_diet else None
+    patient= get_patient_details(latest_diet['p_id'])
+    
+
+    return render_template(
+        'view_latest_diet_suggestion.html',
+        diet=latest_diet,
+        doctor_name=doctor_name,
+        patient_name = patient['name'],
+        gl_b_breakfast= patient['gl_b_breakfast'],
+        gl_a_breakfast= patient['gl_a_breakfast'],
+        gl_b_lunch= patient['gl_b_lunch'],
+        gl_b_dinner= patient['gl_b_dinner'],
+        d_id=d_id
+    )
+
+@app.route('/patient_diet_suggestion')
+def patient_diet_suggestion():
+    if 'user_id' not in session:
+        flash("Session timed out. Please login again.")
+        return redirect(url_for('login'))
+
+    p_id = session['user_id']
+
+    # Fetch latest diet suggestion for patient
+    diet = get_latest_diet_suggestion(p_id)
+    doctor_name = get_doctor_name(diet['d_id']) if diet else None
+
+    return render_template(
+        'patient_diet_suggestion.html',
+        diet=diet,
+        doctor_name=doctor_name
+    )
+
+#===========LABIBA M3+M4 ends ===========================================
 
 # LOGOUT
 @app.route('/logout')
