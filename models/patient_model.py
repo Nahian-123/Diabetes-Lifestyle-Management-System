@@ -1,6 +1,7 @@
 from db import get_db_connection
 
 
+
 def get_patient_name_glucose_info_update(p_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -823,3 +824,54 @@ def populate_telemed_payment(app_id):
    
 
 #============ Angshu M2 ends =====================
+#==============Angshu Ai_chat history====================
+# ... existing imports ...
+
+
+# --- NEW FUNCTIONS FOR CHAT HISTORY ---
+
+def save_chat_message(p_id, sender, message):
+    """
+    Saves a message to the chat_history table.
+    sender: 'user' or 'ai'
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        sql = """
+            INSERT INTO chat_history (p_id, sender, message, timestamp) 
+            VALUES (%s, %s, %s, NOW())
+        """
+        cursor.execute(sql, (p_id, sender, message))
+        conn.commit()
+    except Exception as e:
+        print(f"Error saving chat: {e}")
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def get_chat_history(p_id):
+    """
+    Retrieves full chat history for a patient, ordered by time.
+    """
+    conn = get_db_connection()
+    try:
+        # dictionary=True allows us to access data via row['message'] in Jinja
+        cursor = conn.cursor(dictionary=True) 
+        sql = """
+            SELECT sender, message, timestamp 
+            FROM chat_history 
+            WHERE p_id = %s 
+            ORDER BY timestamp ASC
+        """
+        cursor.execute(sql, (p_id,))
+        result = cursor.fetchall()
+        return result
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return []
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()

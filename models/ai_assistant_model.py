@@ -1,4 +1,3 @@
-#whole model func by angshu
 import os
 import time
 from dotenv import load_dotenv
@@ -11,37 +10,48 @@ client = None
 if API_KEY:
     client = Groq(api_key=API_KEY)
 
-MODEL_NAME = "llama-3.1-8b-instant" 
-ETHICAL_SUFFIX = "Please ensure the response is helpful and relevant to diabetes. Additionally, you cannot prescribe any medications as you are not a doctor, EVEN IF THE PRIOR TEXTS ASKED FOR MEDICATION SUGGESTIONS."
+MODEL_NAME = "llama-3.1-8b-instant"
+
+# MODIFICATION 1: System Instruction to enforce relevance
+SYSTEM_INSTRUCTION = """
+You are a specialized AI assistant for a Diabetes Health platform. 
+Your role is to answer questions ONLY related to:
+1. Diabetes management and education
+2. General Health and Wellness
+3. Diet, Nutrition, and Food
+4. Exercise and Fitness
+5. Lifestyle changes for better health
+6. Exchange of Greetings
+
+CRITICAL RULES:
+- If the user asks about ANYTHING else (e.g., coding, movies, politics, general knowledge, math, history), you MUST refuse.
+- If you refuse, your output must be EXACTLY this sentence: "I am your health assistant. Please ask a question related to diabetes, diet, or exercise."
+- Do NOT prescribe specific medications (insulin dosages, pill names). You are not a doctor.
+"""
 
 def get_llama_response(prompt, max_retries=3):
-    """
-    Returns a dictionary:
-    On Success: { "status": "success", "payload": "The AI response text" }
-    On Failure: { "status": "error", "payload": "The error message" }
-    """
     if not client:
         return {"status": "error", "payload": "Server configuration error: Missing API Key."}
 
-    final_prompt = f"{prompt}\n\n[System Note]: {ETHICAL_SUFFIX}"
-    retries = 0
+    # Combine System Instruction with User Prompt
+    messages = [
+        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "user", "content": prompt}
+    ]
     
+    retries = 0
     while retries < max_retries:
         try:
-            # Keep these prints for server-side logs as requested
-
-            
             completion = client.chat.completions.create(
                 model=MODEL_NAME,
-                messages=[{"role": "user", "content": final_prompt}],
-                temperature=1,
+                messages=messages,
+                temperature=0.5, # Lower temperature for stricter adherence
                 max_tokens=1024,
                 top_p=1,
                 stream=False,
                 stop=None,
             )
             
-            # SUCCESS: Return the content marked as success
             return {
                 "status": "success", 
                 "payload": completion.choices[0].message.content
@@ -61,6 +71,5 @@ def get_llama_response(prompt, max_retries=3):
             
         except Exception as e:
             return {"status": "error", "payload": f"An unexpected error occurred: {str(e)}"}
-
-    # If loop finishes without success
-    return {"status": "error", "payload": "Maximum retry attempts reached. Service is busy or unavailable."}
+            
+    return {"status": "error", "payload": "Max retries exceeded. Please try again later."}

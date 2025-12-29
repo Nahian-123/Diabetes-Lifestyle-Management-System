@@ -127,13 +127,33 @@
 
                 <div id="flash-message-area"></div>
 
-                <div class="chat-container shadow-sm mb-3" id="chat-box">
+                <div class="chat-container shadow-sm mb-3" id="chat-box"> <!--new by angshu-->
+    
+                    {% if not chat_history %}
                     <div class="text-center text-muted mt-5" id="welcome-msg">
                         <i class="bi bi-robot fs-1"></i>
-                        <p class="intro-message"><strong>Hello! I am your AI assistant. Ask me anything about diabetes
-                                management.</strong></p>
+                        <p class="intro-message"><strong>Hello! I am your AI assistant. Ask me anything about diabetes management.</strong></p>
                     </div>
-                </div>
+                    {% endif %}
+
+                    {% for chat in chat_history %}
+                        {% if chat.sender == 'user' %}
+                            <div class="chat-message user-message">
+                                <div class="message-content">
+                                    <strong>You</strong><br>
+                                    {{ chat.message }} 
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="chat-message ai-message">
+                                <div class="message-content">
+                                    {{ chat.message | safe }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div> <!--new by angshu end-->
 
                 <div class="card bg-light border-0">
                     <div class="card-body p-2">
@@ -306,6 +326,14 @@
                 processNextToken();
             });
         }
+
+        /*new block angshu*/
+                    document.addEventListener("DOMContentLoaded", function() {
+                const chatBox = document.getElementById('chat-box');
+                if (chatBox) {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }); /*new block angshu*/
     </script>
 </body>
 
