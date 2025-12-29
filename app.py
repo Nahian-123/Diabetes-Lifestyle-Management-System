@@ -15,7 +15,7 @@ import markdown, bleach #new line by angshy
 # Import models
 from models.user_model import login_user, register_user, validate_email
 
-from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment #last 3 imports by angshu
+from models.patient_model import get_patient_notifications, get_time_based_medication_reminder,get_patient_notifications, get_patient_name_glucose_info_update,get_patient_notices,get_confirmed_app_id, get_unpaid_telemed,populate_telemed_payment,save_chat_message,get_chat_history #last 5 imports by angshu
 from models.user_model import login_user, register_user, validate_email
 from models.doctor_model import get_doctor_name, get_doctor_notices, update_doctor_profile #new line by angshu
 from models.admin_model import insert_notice, get_dashboard_stats, get_all_doctors, get_all_doctors_for_verification, update_doctor_verification
@@ -1698,29 +1698,31 @@ def doctor_reviews():
 #================M3+M4 Angshu starts===========================
 @app.route('/ai_assistant', methods=['GET', 'POST'])
 def ai_assistant():
-    # 1. Authentication Check (Common for both)
+    # 1. Authentication Check
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    # 2. Handle Chat Logic (POST request from JavaScript)
+    
+    # In your app, session['user_id'] maps to p_id in the database
+    p_id = session['user_id'] 
+
+    # 2. Handle Chat Logic (POST request)
     if request.method == 'POST':
         data = request.get_json()
         
         if not data or 'prompt' not in data:
-            return jsonify({"success": False, "message": "Missing 'prompt' in request body"}), 400
+            return jsonify({"success": False, "message": "Missing 'prompt'"}), 400
 
         user_prompt = data['prompt']
         
-        # Call the model
+        # --- DB SAVE: User Message ---
+        save_chat_message(p_id, 'user', user_prompt)
+
+        # Call the model (This calls your existing function in ai_assistant_model.py)
         result = get_llama_response(user_prompt)
         
-        # Handle Model Error
         if result['status'] == 'error':
-            return jsonify({
-                "success": False, 
-                "message": result['payload'] 
-            })
+            return jsonify({"success": False, "message": result['payload']})
 
-        # Handle Model Success
         elif result['status'] == 'success':
             raw_response = result['payload']
             
@@ -1729,14 +1731,19 @@ def ai_assistant():
             allowed_tags = list(bleach.sanitizer.ALLOWED_TAGS) + ['p', 'br', 'h1', 'h2', 'h3', 'strong', 'em', 'pre', 'code', 'ul', 'ol', 'li']
             clean_html_response = bleach.clean(html_response, tags=allowed_tags)
             
+            # --- DB SAVE: AI Message ---
+            save_chat_message(p_id, 'ai', clean_html_response)
+            
             return jsonify({
                 "success": True,
                 "response": clean_html_response,
                 "raw_text": raw_response
             })
 
-    # 3. Handle Page Load (GET request)
-    return render_template('ai_assistant.html', p_id=session['user_id'])
+    # 3. Handle Page Load (GET request) - NOW WITH HISTORY
+    history = get_chat_history(p_id)
+    # Pass 'history' to the template
+    return render_template('ai_assistant.html', p_id=session['user_id'], chat_history=history)
 
 @app.route('/update_doctor_profile', methods=['GET', 'POST'], endpoint='update_doctor_profile')
 def update_doctor_profile_route():
