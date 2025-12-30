@@ -1,238 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DMS</title>
+  <title>Register | Diabetes Management System</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    /* Modern styling to match the image */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    
-    .login-box {
-      background-color: transparent;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      padding: 20px 30px; /* Reduced vertical padding */
-      max-width: 360px; /* Increased width */
-      width: 100%;
-      margin: 0 auto;
-    }
-    
-    .login-header {
-      text-align: center;
-      margin-bottom: 15px; /* Reduced margin */
-    }
-    
-    .login-header header {
-      color: #333;
-      font-size: 24px;
-      font-weight: 600;
-      line-height: 1.2; /* Reduced line height */
-    }
-    
-    .input-box {
-      margin-bottom: 10px; /* Reduced margin */
-      position: relative;
-    }
-    
-    .input-field {
-      width: 100%;
-      padding: 10px 16px; /* Reduced height */
-      border: none;
-      border-radius: 50px;
-      background-color: white;
-      font-size: 15px;
-      box-sizing: border-box;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      height: 40px; /* Fixed height */
-    }
-    
-    .input-field:focus {
-      outline: none;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    }
-    
-    .password-wrapper {
-      position: relative;
-    }
-    
-    .toggle-password {
-      position: absolute;
-      right: 15px; /* Adjusted position */
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: #666;
-      transition: color 0.3s ease, opacity 0.3s ease;
-      font-size: 16px; /* Fixed size */
-      opacity: 0; /* Initially hidden */
-      pointer-events: none; /* Initially not clickable */
-      line-height: 1; /* Ensure proper vertical alignment */
-    }
-    
-    .toggle-password.visible {
-      opacity: 1;
-      pointer-events: auto; /* Make clickable when visible */
-    }
-    
-    .toggle-password:hover {
-      color: #333;
-    }
-    
-    .dropdown-container {
-      margin-bottom: 10px; /* Reduced margin */
-    }
-    
-    select {
-      width: 100%;
-      padding: 10px 16px; /* Reduced height */
-      border: none;
-      border-radius: 50px;
-      background-color: white;
-      font-size: 15px;
-      box-sizing: border-box;
-      appearance: none;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230066ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 16px center;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      height: 40px; /* Fixed height */
-    }
-    
-    select:focus {
-      outline: none;
-    }
-    
-    .submit-btn {
-      width: 100%;
-      padding: 10px; /* Reduced padding */
-      border: none;
-      border-radius: 50px;
-      background-color: #0066ff;
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      height: 40px; /* Fixed height */
-    }
-    
-    .submit-btn:hover {
-      background-color: #0052cc;
-    }
-    
-    .sign-up-link {
-      text-align: center;
-      margin-top: 12px; /* Reduced margin */
-      color: #333;
-      font-size: 14px;
-    }
-    
-    .sign-up-link a {
-      color: #0066ff;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    
-    .sign-up-link a:hover {
-      text-decoration: underline;
-    }
-    
-    
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <header class="top-bar">
-    <div class="animated-slide"><b>Welcome to DMS</b></div>
-    <div class="contact">
-      <button class="contact-btn" title="+919986786453"><b>📞 Contact</b></button>
-      <div id="phoneDisplay" class="phone-display">+919986786453</div>
-      <a href="login.html">
-        <button class="login-btn"><b>Login</b></button>
-      </a>
-    </div>
-  </header>
-  
-  <section class="hero">
-    <img src="{{ url_for('static', filename='hospital.png') }}" alt="Hospital" class="hero-img">
-
-    <div class="login-box">
-      <div class="login-header">
-        <header>Diabetes Management and Appointment System</header>
+  <div class="main-container">
+    <div class="showcase-bg-layers">
+      <div class="bg-layer active"
+        style="background-image: url('{{ url_for('static', filename='ai_assistant.jpeg') }}');"></div>
+      <div class="bg-layer"
+        style="background-image: url('{{ url_for('static', filename='online_appointments.jpeg') }}');"></div>
+      <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='telemedicine.jpeg') }}');">
       </div>
-      <form action="#" method="post">
-        <div class="input-box">
-          <input class="input-field" type="text" name="username" placeholder="Username" required>
-        </div>
-
-        <div class="input-box">
-          <input class="input-field" type="email" name="email" placeholder="Email" required>
-        </div>
-
-        <div class="input-box password-wrapper">
-          <input class="input-field" type="password" id="password" name="password" placeholder="Password" required>
-          <i class="toggle-password fas fa-eye"></i>
-        </div>
-
-        <div class="dropdown-container">
-          <select name="user" id="user" required>
-            <option value="" disabled selected>Register As</option>
-            <option value="Doctor">Doctor</option>
-            <option value="Patient">Patient</option>
-          </select>
-        </div>
-
-        <div class="input-submit">
-          <input class="submit-btn" type="submit" value="Register">
-        </div>
-      </form>
-
-      <div class="sign-up-link">
-        Already have an account? <a href="{{ url_for('login') }}">Login</a>
+      <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='prescription_reg.jpeg') }}');">
+      </div>
+      <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='urgent_care.jpeg') }}');">
+      </div>
+      <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='our_doctors.jpeg') }}');">
+      </div>
+      <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='smbg.jpeg') }}');"></div>
+      <div class="bg-layer"
+        style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ url_for('static', filename='hospital.png') }}');">
+      </div>
+      <div class="bg-layer"
+        style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ url_for('static', filename='images.png') }}');">
       </div>
     </div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const passwordField = document.getElementById("password");
-        const toggleIcon = document.querySelector(".toggle-password");
-        
-        // Function to check if password field has content
-        function checkPasswordContent() {
-          if (passwordField.value.length > 0) {
-            toggleIcon.classList.add('visible');
+    <div class="content-wrapper">
+      <!-- Left Side: Services Showcase -->
+      <section class="showcase-side">
+
+
+        <div class="logo-container">
+          <img src="{{ url_for('static', filename='DLMS logo.png') }}" alt="DLMS Logo" class="logo-img">
+          <span class="logo-text">DLMS</span>
+        </div>
+
+        <div class="services-showcase">
+          <div class="service-item active">
+            <h2 class="service-title">AI Health Assistant</h2>
+            <p class="service-description">Get instant, intelligent answers to your diabetes-related questions and
+              health concerns.</p>
+          </div>
+          <div class="service-item next">
+            <h2 class="service-title">Online Appointments</h2>
+            <p class="service-description">Book and manage appointments with specialized doctors in just a few clicks.
+            </p>
+          </div>
+          <div class="service-item">
+            <h2 class="service-title">Telemedicine</h2>
+            <p class="service-description">Connect with healthcare professionals through secure high-quality video
+              consultations.</p>
+          </div>
+          <div class="service-item">
+            <h2 class="service-title">Digital Prescriptions</h2>
+            <p class="service-description">Access and manage all your prescriptions and medical records digitally in one
+              place.</p>
+          </div>
+          <div class="service-item">
+            <h2 class="service-title">Urgent Care</h2>
+            <p class="service-description">Quick access to essential medical support whenever you need it most.</p>
+          </div>
+          <div class="service-item">
+            <h2 class="service-title">Our Doctors</h2>
+            <p class="service-description">Connecting doctor to the patient from different parts of the country in our
+              shared platform to deliver best possible healthcare.</p>
+          </div>
+          <div class="service-item">
+            <h2 class="service-title">SMBG</h2>
+            <p class="service-description">Self Monitor Blood Glucose (SMBG) empowers you with real-time data for better
+              diabetes lifestyle management and informed health decisions.</p>
+          </div>
+
+        </div>
+
+        <!-- Footer Info Buttons -->
+        <div class="footer-info">
+          <button class="info-btn" data-target="about-bar">About Us</button>
+          <button class="info-btn" data-target="contact-bar">Contact Us</button>
+        </div>
+
+        <!-- Info Bars (Initially Hidden) -->
+        <div class="info-bar" id="about-bar">
+          <div class="info-bar-bg"></div>
+          <div class="info-bar-content">
+            <h3>About DLMS</h3>
+            <p>Diabetes Lifestyle Management System (DLMS) is an all-in-one health ecosystem. We use
+              advanced AI to provide personalized lifestyle recommendations, helping you manage diabetes
+              with confidence and ease.</p>
+            <button class="close-info"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+        <div class="info-bar" id="contact-bar">
+          <div class="info-bar-bg"></div>
+          <div class="info-bar-content">
+            <h3>Contact Us</h3>
+            <p>Need assistance? Contact our support team at <strong>support@dlms.com</strong> or call us at
+              <strong>+1 (800) DLMS-HELP</strong>. We are available 24/7 for your health needs.
+            </p>
+            <button class="close-info"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+
+      </section>
+
+      <!-- Right Side: Registration Form -->
+      <section class="form-side">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="custom-flash">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="registration-box">
+          <div class="form-header">
+            <h1>Create an Account</h1>
+            <p>Join our community for better diabetes management.</p>
+          </div>
+
+          <form action="#" method="post">
+            <div class="input-group">
+              <label class="input-label">Username</label>
+              <input class="input-field" type="text" name="username" placeholder="Enter your username" required>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Email Address</label>
+              <input class="input-field" type="email" name="email" placeholder="name@example.com" required>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Password</label>
+              <div class="password-wrapper">
+                <input class="input-field" type="password" id="password" name="password" placeholder="Create a password"
+                  required>
+                <i class="toggle-password fas fa-eye"></i>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Register As</label>
+              <select class="input-field" name="user" id="user" required>
+                <option value="" disabled selected>Select Role</option>
+                <option value="Doctor">Doctor</option>
+                <option value="Patient">Patient</option>
+              </select>
+            </div>
+
+            <div class="input-submit">
+              <button class="submit-btn" type="submit">Sign Up</button>
+            </div>
+          </form>
+
+          <div class="footer-links">
+            Already have an account? <a href="{{ url_for('login') }}">Log In</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Password Toggle Logic
+      const passwordField = document.getElementById("password");
+      const toggleIcon = document.querySelector(".toggle-password");
+
+      toggleIcon.addEventListener('click', function () {
+        const type = passwordField.type === "password" ? "text" : "password";
+        passwordField.type = type;
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
+      });
+
+      // Services Showcase Transition Logic
+      const items = document.querySelectorAll('.service-item');
+      const layers = document.querySelectorAll('.bg-layer');
+      let currentIndex = 0;
+      let interval;
+
+      function updateShowcase(index) {
+        currentIndex = index;
+
+        // Update Content
+        items.forEach((item, i) => {
+          item.classList.remove('active', 'prev', 'next');
+          if (i === currentIndex) item.classList.add('active');
+          else if (i === (currentIndex - 1 + items.length) % items.length) item.classList.add('prev');
+          else if (i === (currentIndex + 1) % items.length) item.classList.add('next');
+        });
+
+        // Update Backgrounds
+        layers.forEach((layer, i) => {
+          layer.classList.toggle('active', i === currentIndex);
+        });
+
+
+      }
+
+      function startInterval() {
+        interval = setInterval(() => {
+          let nextIndex = (currentIndex + 1) % items.length;
+          updateShowcase(nextIndex);
+        }, 5000);
+      }
+
+
+      // Info Bar Logic
+      const infoBtns = document.querySelectorAll('.info-btn');
+      const infoBars = document.querySelectorAll('.info-bar');
+      const closeBtns = document.querySelectorAll('.close-info');
+      const showcaseSide = document.querySelector('.showcase-side');
+
+      infoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const targetBar = document.getElementById(targetId);
+
+          // Close other bars first
+          infoBars.forEach(bar => {
+            if (bar !== targetBar) bar.classList.remove('active');
+          });
+
+          const isActive = targetBar.classList.toggle('active');
+
+          // Toggle visibility of main showcase content
+          if (isActive) {
+            showcaseSide.classList.add('content-hidden');
           } else {
-            toggleIcon.classList.remove('visible');
-          }
-        }
-        
-        // Check on input
-        passwordField.addEventListener('input', checkPasswordContent);
-        
-        // Check on initial load (in case of autofill)
-        checkPasswordContent();
-        
-        // Toggle password visibility
-        toggleIcon.addEventListener('click', function() {
-          if (passwordField.type === "password") {
-            passwordField.type = "text";
-            toggleIcon.classList.remove("fa-eye");
-            toggleIcon.classList.add("fa-eye-slash");
-          } else {
-            passwordField.type = "password";
-            toggleIcon.classList.remove("fa-eye-slash");
-            toggleIcon.classList.add("fa-eye");
+            showcaseSide.classList.remove('content-hidden');
           }
         });
       });
-    </script>
-  </section>
+
+      closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.closest('.info-bar').classList.remove('active');
+          showcaseSide.classList.remove('content-hidden');
+        });
+      });
+
+      function resetInterval() {
+        clearInterval(interval);
+        startInterval();
+      }
+
+
+
+      // Page Transition Logic
+      const links = document.querySelectorAll('a');
+      links.forEach(link => {
+        link.addEventListener('click', function (e) {
+          const href = this.getAttribute('href');
+          if (href && !href.startsWith('#') && !this.target) {
+            e.preventDefault();
+            document.body.classList.add('page-exit');
+            setTimeout(() => {
+              window.location.href = href;
+            }, 500);
+          }
+        });
+      });
+
+      // Initial Start
+      startInterval();
+    });
+  </script>
 </body>
+
 </html>
