@@ -1,47 +1,221 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Login</title>
 </head>
-<body>
-    <div class="background"></div>
-    
-    <div class="login-box">
-        <div class="login-header">
-            <header>Diabetes Management and Appointment System</header>
-        </div>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form action="{{ url_for('login') }}" method="post">
-            <div class="input-box">
-                <input type="email" class="input-field" placeholder="Email" name="email" required>
-            </div>
-            <div class="input-box">
-                <input type="password" class="input-field" placeholder="Password" name="password" required>
-            </div>
 
-            
-            
-            <div class="input-submit">
-                <button type="submit" class="submit-btn" id="submit" name="login">Login</button>
+<body>
+    <div class="main-container">
+
+        <!-- Full-screen background layers -->
+        <div class="showcase-bg-layers">
+            <div class="bg-layer active"
+                style="background-image: url('{{ url_for('static', filename='Diabetes-1024x683.jpg') }}');"></div>
+            <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='runningpic.jpeg') }}');">
             </div>
-            
-            <div class="sign-up-link">
-                <p>Don't have an account? <a href="{{ url_for('register') }}">Signup</a></p>
+            <div class="bg-layer" style="background-image: url('{{ url_for('static', filename='Sugar_Fit.jpeg') }}');">
             </div>
-        </form>
+            <div class="bg-layer"
+                style="background-image: url('{{ url_for('static', filename='1f71d2fb-40a2-4594-93a3-ed5551a2d6d5.jpeg') }}');">
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- Left Side: Services Showcase (Text Only for Login) -->
+            <section class="showcase-side">
+
+
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='DLMS logo.png') }}" alt="DLMS Logo" class="logo-img">
+                    <span class="logo-text">DLMS</span>
+                </div>
+
+                <div class="services-showcase">
+                    <div class="service-item active">
+                        <h2 class="service-title">Your Health, Our Priority</h2>
+                        <p class="service-description">Experience the next generation of diabetes management with our
+                            AI-powered ecosystem designed for your well-being.</p>
+                    </div>
+                    <div class="service-item">
+                        <h2 class="service-title">Take Hold Of your life</h2>
+                        <p class="service-description">Get the most personalized diet and health suggestions
+                            from our doctors leading you to a better lifestyle.</p>
+                    </div>
+                    <div class="service-item">
+                        <h2 class="service-title">Know What's Stopping You</h2>
+                        <p class="service-description">Connect with top healthcare professionals across the country via
+                            telemedicine and secure appointments.</p>
+                    </div>
+                    <div class="service-item">
+                        <h2 class="service-title">Complete Healthcare Hub</h2>
+                        <p class="service-description">Manage your prescriptions, appointments, and blood glucose levels
+                            all in one unified platform.</p>
+                    </div>
+                </div>
+
+
+
+                <!-- Footer Info Buttons -->
+                <div class="footer-info">
+                    <button class="info-btn" data-target="about-bar">About Us</button>
+                    <button class="info-btn" data-target="contact-bar">Contact Us</button>
+                </div>
+
+                <!-- Info Bars (Initially Hidden) -->
+                <div class="info-bar" id="about-bar">
+                    <div class="info-bar-bg"></div>
+                    <div class="info-bar-content">
+                        <h3>About DLMS</h3>
+                        <p>Diabetes Lifestyle Management System (DLMS) is an all-in-one health ecosystem. We use
+                            advanced AI to provide personalized lifestyle recommendations, helping you manage diabetes
+                            with confidence and ease.</p>
+                        <button class="close-info"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <div class="info-bar" id="contact-bar">
+                    <div class="info-bar-bg"></div>
+                    <div class="info-bar-content">
+                        <h3>Contact Us</h3>
+                        <p>Need assistance? Contact our support team at <strong>support@dlms.com</strong> or call us at
+                            <strong>+1 (800) DLMS-HELP</strong>. We are available 24/7 for your health needs.
+                        </p>
+                        <button class="close-info"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Login Form -->
+            <section class="form-side">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <div class="registration-box">
+                    <div class="form-header">
+                        <h1>Login to DLMS</h1>
+                        <p>Welcome back! Please enter your details.</p>
+                    </div>
+
+                    <form action="{{ url_for('login') }}" method="post">
+                        <div class="input-group">
+                            <label class="input-label">Email Address</label>
+                            <input type="email" class="input-field" placeholder="Enter your email" name="email"
+                                required>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Password</label>
+                            <input type="password" class="input-field" placeholder="Enter your password" name="password"
+                                required>
+                        </div>
+
+                        <div class="input-submit">
+                            <button type="submit" class="submit-btn" id="submit" name="login">Login</button>
+                        </div>
+
+                        <div class="footer-links">
+                            <p>Don't have an account? <a href="{{ url_for('register') }}">Signup</a></p>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const items = document.querySelectorAll('.service-item');
+            const layers = document.querySelectorAll('.bg-layer');
+            let currentIndex = 0;
+            let interval;
+
+            function updateShowcase(index) {
+                // Remove active class from current items
+                items[currentIndex].classList.remove('active');
+                layers[currentIndex].classList.remove('active');
+
+                currentIndex = index;
+
+                // Add active class to new items
+                items[currentIndex].classList.add('active');
+                layers[currentIndex].classList.add('active');
+            }
+
+            function startInterval() {
+                interval = setInterval(() => {
+                    let nextIndex = (currentIndex + 1) % items.length;
+                    updateShowcase(nextIndex);
+                }, 5000);
+            }
+
+            function resetInterval() {
+                clearInterval(interval);
+                startInterval();
+            }
+
+
+
+            // Info Bar Logic
+            const infoBtns = document.querySelectorAll('.info-btn');
+            const infoBars = document.querySelectorAll('.info-bar');
+            const closeBtns = document.querySelectorAll('.close-info');
+            const showcaseSide = document.querySelector('.showcase-side');
+
+            infoBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-target');
+                    const targetBar = document.getElementById(targetId);
+
+                    // Close other bars first
+                    infoBars.forEach(bar => {
+                        if (bar !== targetBar) bar.classList.remove('active');
+                    });
+
+                    const isActive = targetBar.classList.toggle('active');
+
+                    // Toggle visibility of main showcase content
+                    if (isActive) {
+                        showcaseSide.classList.add('content-hidden');
+                    } else {
+                        showcaseSide.classList.remove('content-hidden');
+                    }
+                });
+            });
+
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.closest('.info-bar').classList.remove('active');
+                    showcaseSide.classList.remove('content-hidden');
+                });
+            });
+
+            // Page Transition Logic
+            const links = document.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href && !href.startsWith('#') && !this.target) {
+                        e.preventDefault();
+                        document.body.classList.add('page-exit');
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, 500);
+                    }
+                });
+            });
+
+            startInterval();
+        });
+    </script>
 </body>
+
 </html>
