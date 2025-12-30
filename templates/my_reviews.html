@@ -7,9 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Reviews</title>
     <!-- Bootstrap CSS -->
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Added SweetAlert2 for nicer notifications without 'localhost' header -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='/verified_doctor_list.css') }}">
     <style>
         .star-rating {
@@ -182,12 +183,14 @@
                                     class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
-                                <form action="{{ url_for('delete_review_route', review_id=review.review_id) }}"
-                                    method="POST"
-                                    onsubmit="return confirm('Are you sure you want to delete this review?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
+                                <!-- Replaced native confirm() with a custom SweetAlert2 confirmation -->
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete('{{ review.review_id }}')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                                <form id="delete-form-{{ review.review_id }}" 
+                                    action="{{ url_for('delete_review_route', review_id=review.review_id) }}"
+                                    method="POST" style="display: none;">
                                 </form>
                             </div>
                         </div>
@@ -203,6 +206,25 @@
             </main>
         </div>
     </div>
+    <!-- Added script for SweetAlert2 delete confirmation -->
+    <script>
+        function confirmDelete(reviewId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + reviewId).submit();
+                }
+            })
+        }
+    </script>
 </body>
 
 </html>
