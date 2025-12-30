@@ -157,18 +157,19 @@ body, html {
 
 
 .logo-container {
-  position: absolute;
-  top: 17px;
+  position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-bottom: 30px;
 }
 
 .logo-img {
   height: 50px;
   width: auto;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  border-radius: 50%;
 }
 
 .logo-text {
