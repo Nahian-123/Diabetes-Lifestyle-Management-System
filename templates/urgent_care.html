@@ -3,6 +3,8 @@
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Added SweetAlert2 for integrated notifications -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     #map {
         height: 500px;
@@ -170,7 +172,12 @@
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(sendRequest, showError);
         } else {
-            alert("Geolocation is not supported by this browser.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Geolocation is not supported by this browser.'
+            });
+            document.getElementById('loading').style.display = 'none';
         }
     }
 
@@ -189,7 +196,11 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Notice',
+                        text: data.message
+                    });
                 }
             });
     }
@@ -200,7 +211,11 @@
         const relation = document.getElementById('contactRelation').value;
 
         if (!name || !phone) {
-            alert("Name and Phone are required.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: 'Name and Phone are required.'
+            });
             return;
         }
 
@@ -214,7 +229,11 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert("Failed: " + data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed',
+                        text: data.message
+                    });
                 }
             });
     }
@@ -228,7 +247,11 @@
         const recipients = Array.from(checkboxes).map(cb => cb.value);
 
         if (recipients.length === 0) {
-            alert("Please select at least one contact.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Selection',
+                text: 'Please select at least one contact.'
+            });
             return;
         }
         sendNotification(recipients);
@@ -250,9 +273,18 @@
                     .then(data => {
                         document.getElementById('loading').style.display = 'none';
                         if (data.success) {
-                            alert(data.message);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Alert Sent',
+                                text: data.message,
+                                timer: 3000
+                            });
                         } else {
-                            alert("Failed: " + data.message);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed',
+                                text: data.message
+                            });
                         }
                     });
             });
@@ -260,22 +292,32 @@
     }
 
     function completeRide() {
-        if (!confirm("Are you sure the ride is complete? This will reset the view.")) return;
-
-        document.getElementById('loading').style.display = 'block';
-        fetch('/api/complete_ride', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert("Failed: " + data.message);
-                    document.getElementById('loading').style.display = 'none';
-                }
-            });
+        Swal.fire({
+            title: 'Complete Ride?',
+            text: "Are you sure the ride is complete? This will reset the view.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, complete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('loading').style.display = 'block';
+                fetch('/api/complete_ride', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                });
+            }
+        });
     }
 
     function showStatus(req) {
@@ -307,20 +349,26 @@
 
     function showError(error) {
         document.getElementById('loading').style.display = 'none';
+        let msg = "";
         switch (error.code) {
             case error.PERMISSION_DENIED:
-                alert("User denied the request for Geolocation.");
+                msg = "User denied the request for Geolocation.";
                 break;
             case error.POSITION_UNAVAILABLE:
-                alert("Location information is unavailable.");
+                msg = "Location information is unavailable.";
                 break;
             case error.TIMEOUT:
-                alert("The request to get user location timed out.");
+                msg = "The request to get user location timed out.";
                 break;
             case error.UNKNOWN_ERROR:
-                alert("An unknown error occurred.");
+                msg = "An unknown error occurred.";
                 break;
         }
+        Swal.fire({
+            icon: 'error',
+            title: 'Location Error',
+            text: msg
+        });
     }
 
     // Run Init
