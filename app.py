@@ -2129,6 +2129,9 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
 
+# Ensure the 'app' variable exists for Vercel to find
+app = app
+
 # RUN APP
 if __name__ == '__main__':
     app.run(debug=True)
