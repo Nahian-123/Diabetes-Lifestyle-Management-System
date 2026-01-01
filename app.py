@@ -1555,16 +1555,6 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_PASSWORD"] = os.getenv("SENDGRID_API_KEY")
 # app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
 
-#fix from gpt
-app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
-app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
-app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS") == "true"
-app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
-app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
-app.config["MAIL_DEFAULT_SENDER"] = ("DLMS Notification", app.config["MAIL_USERNAME"])
-
-
 mail = Mail(app)
 
 #added for deploying
