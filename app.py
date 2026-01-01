@@ -2166,34 +2166,33 @@ def logout():
 # Ensure the 'app' variable exists for Vercel to find
 app = app
 
-# --- PASTE THIS AT THE BOTTOM OF app.py ---
 # --- PASTE AT THE BOTTOM OF app.py ---
+import smtplib
 
-@app.route('/debug-final')
-def debug_final():
+@app.route('/debug-connection')
+def debug_connection():
+    output = ["<h1>Connection Test Results</h1>"]
+    
+    # TEST 1: Port 465 (SSL) - The Preferred Way
+    output.append("<h3>Attempting Port 465 (SSL)...</h3>")
     try:
-        # 1. Import inside the function to prevent "Missing Import" errors
-        from flask_mail import Message
-        from flask import current_app
-        
-        # 2. Check Password Spaces (Common Issue)
-        password = current_app.config.get("MAIL_PASSWORD", "")
-        if " " in password:
-            return f"<h1>❌ CONFIG ERROR</h1><p>Your password '{password}' contains spaces. Please remove them in app.py!</p>"
-
-        # 3. Create Email
-        msg = Message("Railway Debug Email", recipients=["nahianlamisa12@gmail.com"])
-        msg.body = "If you received this, your email configuration is PERFECT."
-        
-        # 4. Send
-        mail.send(msg)
-        return "<h1>✅ SUCCESS!</h1><p>Email sent. Check your Inbox (and Spam folder).</p>"
-        
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=5)
+        server.quit()
+        output.append("<p style='color:green'><b>✅ Port 465 Success!</b> Server is reachable.</p>")
     except Exception as e:
-        # 5. Catch ANY crash and show it
-        import traceback
-        error_details = traceback.format_exc()
-        return f"<h1>❌ ERROR</h1><pre>{error_details}</pre>"
+        output.append(f"<p style='color:red'>❌ Port 465 Failed: {str(e)}</p>")
+
+    # TEST 2: Port 587 (TLS) - The Backup Way
+    output.append("<h3>Attempting Port 587 (TLS)...</h3>")
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
+        server.starttls()
+        server.quit()
+        output.append("<p style='color:green'><b>✅ Port 587 Success!</b> Server is reachable.</p>")
+    except Exception as e:
+        output.append(f"<p style='color:red'>❌ Port 587 Failed: {str(e)}</p>")
+
+    return "".join(output)
 
 # RUN APP
 if __name__ == '__main__':
