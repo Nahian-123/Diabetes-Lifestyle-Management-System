@@ -2162,6 +2162,20 @@ def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
+#test
+@app.route('/test-email-now')
+def test_email_now():
+    # 1. Setup the message
+    msg = Message("Debug Test Email", recipients=["nahianlamisa12@gmail.com"])
+    msg.body = "If you are reading this, the email system is working perfectly!"
+    
+    # 2. Try to send it directly (Synchronously)
+    try:
+        mail.send(msg)
+        return "<h1>✅ SUCCESS!</h1> <p>Email was sent. Check your inbox and SPAM folder.</p>"
+    except Exception as e:
+        # 3. If it fails, show the EXACT error on screen
+        return f"<h1>❌ FAILED</h1> <h3>Error Message:</h3> <p>{str(e)}</p>"
 
 # Ensure the 'app' variable exists for Vercel to find
 app = app
