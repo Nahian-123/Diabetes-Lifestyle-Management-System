@@ -2167,31 +2167,33 @@ def logout():
 app = app
 
 # --- PASTE THIS AT THE BOTTOM OF app.py ---
-from flask_mail import Message
-from flask import current_app
+# --- PASTE AT THE BOTTOM OF app.py ---
 
-@app.route('/debug-mail')
-def debug_mail():
+@app.route('/debug-final')
+def debug_final():
     try:
-        # 1. Print settings to screen (Masking password)
-        config_info = f"""
-        Server: {app.config.get('MAIL_SERVER')}
-        Port: {app.config.get('MAIL_PORT')}
-        SSL: {app.config.get('MAIL_USE_SSL')}
-        User: {app.config.get('MAIL_USERNAME')}
-        Password Length: {len(app.config.get('MAIL_PASSWORD'))} (Should be 16)
-        """
+        # 1. Import inside the function to prevent "Missing Import" errors
+        from flask_mail import Message
+        from flask import current_app
         
-        # 2. Try to send
-        msg = Message("Debug Email", recipients=["nahianlamisa12@gmail.com"])
-        msg.body = "If you see this, it works!"
+        # 2. Check Password Spaces (Common Issue)
+        password = current_app.config.get("MAIL_PASSWORD", "")
+        if " " in password:
+            return f"<h1>❌ CONFIG ERROR</h1><p>Your password '{password}' contains spaces. Please remove them in app.py!</p>"
+
+        # 3. Create Email
+        msg = Message("Railway Debug Email", recipients=["nahianlamisa12@gmail.com"])
+        msg.body = "If you received this, your email configuration is PERFECT."
+        
+        # 4. Send
         mail.send(msg)
-        
-        return f"<h1>✅ Email Sent!</h1><pre>{config_info}</pre>"
+        return "<h1>✅ SUCCESS!</h1><p>Email sent. Check your Inbox (and Spam folder).</p>"
         
     except Exception as e:
-        # Catch ANY error and print it
-        return f"<h1>❌ Error Occurred</h1><p>{str(e)}</p><pre>{config_info}</pre>"
+        # 5. Catch ANY crash and show it
+        import traceback
+        error_details = traceback.format_exc()
+        return f"<h1>❌ ERROR</h1><pre>{error_details}</pre>"
 
 # RUN APP
 if __name__ == '__main__':
