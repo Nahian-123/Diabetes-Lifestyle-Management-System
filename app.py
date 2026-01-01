@@ -1,3 +1,13 @@
+# ========================================================
+import socket
+original_getaddrinfo = socket.getaddrinfo
+
+def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+socket.getaddrinfo = ipv4_getaddrinfo
+# ========================================================
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import mysql.connector
 from datetime import datetime, date, time, timedelta
@@ -1539,13 +1549,13 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
 
 #fix from gemini
-# app.config["MAIL_SERVER"] = "smtp.gmail.com"
-# app.config["MAIL_PORT"] = 587             # Changed from 587
-# app.config["MAIL_USE_TLS"] = True        # Changed to False
-# app.config["MAIL_USE_SSL"] = False         # Changed to True
-# app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-# app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd" # Spaces removed
-# app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 465             # Changed from 587
+app.config["MAIL_USE_TLS"] = False        # Changed to False
+app.config["MAIL_USE_SSL"] = True         # Changed to True
+app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
+app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd" # Spaces removed
+app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
 #fix from copilot
 # app.config["MAIL_SERVER"] = "smtp.sendgrid.net"
@@ -1554,14 +1564,6 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_USERNAME"] = "apikey"  # literally the word 'apikey'
 # app.config["MAIL_PASSWORD"] = os.getenv("SENDGRID_API_KEY")
 # app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
-
-app.config["MAIL_SERVER"] = "smtp.mailgun.org"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_USERNAME"] = "postmaster@sandbox99349d4af72e4938a2bd68b3d1e7f0b6.mailgun.org"
-app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd"  # Replace with actual password
-app.config["MAIL_DEFAULT_SENDER"] = "postmaster@sandbox99349d4af72e4938a2bd68b3d1e7f0b6.mailgun.org"
 
 mail = Mail(app)
 
