@@ -1542,7 +1542,7 @@ app.config["MAIL_PORT"] = 587             # Changed from 587
 app.config["MAIL_USE_TLS"] = True        # Changed to False
 app.config["MAIL_USE_SSL"] = False         # Changed to True
 app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-app.config["MAIL_PASSWORD"] = "hjpc nvaq lpal fbxd" # Spaces removed
+app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd" # Spaces removed
 app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
 mail = Mail(app)
