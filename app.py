@@ -1604,31 +1604,31 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
     body += "\nIf you need any help, feel free to contact us.\nThank you."
 
     #===removed_for_deploy===
-    # msg = Message(subject, recipients=[patient_email])
-    # msg.body = body
+    msg = Message(subject, recipients=[patient_email])
+    msg.body = body
     
-    # try:
-    #     mail.send(msg)
-    #     print(f"{action} email sent.")
-    #     return True
-    # except Exception as e:
-    #     print("Email error:", e)
-    #     return False
+    try:
+        mail.send(msg)
+        print(f"{action} email sent.")
+        return True
+    except Exception as e:
+        print("Email error:", e)
+        return False
 
     # ... (your existing body and subject setup) ...
 
-    msg = Message(subject, recipients=[patient_email])
-    msg.body = body
+    # msg = Message(subject, recipients=[patient_email])
+    # msg.body = body
 
-    # --- REPLACE THE OLD TRY/EXCEPT BLOCK WITH THIS ---
-    try:
-        # We pass 'app' so the thread knows about your Flask config
-        Thread(target=send_async_email, args=(app, msg)).start()
-        print(f"{action} email started in background.")
-        return True
-    except Exception as e:
-        print("Email thread error:", e)
-        return False
+    # # --- REPLACE THE OLD TRY/EXCEPT BLOCK WITH THIS ---
+    # try:
+    #     # We pass 'app' so the thread knows about your Flask config
+    #     Thread(target=send_async_email, args=(app, msg)).start()
+    #     print(f"{action} email started in background.")
+    #     return True
+    # except Exception as e:
+    #     print("Email thread error:", e)
+    #     return False
 
 #Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.      
 #======NAHIAN M3 (MAIL) ends============================================================================
