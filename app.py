@@ -1547,6 +1547,17 @@ app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com
 
 mail = Mail(app)
 
+#added for deploying
+from threading import Thread
+def send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+            print("Background email sent successfully!")
+        except Exception as e:
+            print(f"Failed to send background email: {e}")
+#==done==
+
 def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
     
     if action == "Confirmed" and appointment_type == "telemedicine":
@@ -1572,15 +1583,31 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
 
     body += "\nIf you need any help, feel free to contact us.\nThank you."
 
+    #===removed_for_deploy===
+    # msg = Message(subject, recipients=[patient_email])
+    # msg.body = body
+    
+    # try:
+    #     mail.send(msg)
+    #     print(f"{action} email sent.")
+    #     return True
+    # except Exception as e:
+    #     print("Email error:", e)
+    #     return False
+
+    # ... (your existing body and subject setup) ...
+
     msg = Message(subject, recipients=[patient_email])
     msg.body = body
 
+    # --- REPLACE THE OLD TRY/EXCEPT BLOCK WITH THIS ---
     try:
-        mail.send(msg)
-        print(f"{action} email sent.")
+        # We pass 'app' so the thread knows about your Flask config
+        Thread(target=send_async_email, args=(app, msg)).start()
+        print(f"{action} email started in background.")
         return True
     except Exception as e:
-        print("Email error:", e)
+        print("Email thread error:", e)
         return False
 
 #Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.      
