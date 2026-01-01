@@ -2198,7 +2198,7 @@ def debug_connection():
     # TEST 2: Port 587 (TLS) - The Backup Way
     output.append("<h3>Attempting Port 587 (TLS)...</h3>")
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=5)
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
         server.starttls()
         server.quit()
         output.append("<p style='color:green'><b>✅ Port 587 Success!</b> Server is reachable.</p>")
