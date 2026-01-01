@@ -1542,7 +1542,7 @@ app.config["MAIL_PORT"] = 465             # Changed from 587
 app.config["MAIL_USE_TLS"] = False        # Changed to False
 app.config["MAIL_USE_SSL"] = True         # Changed to True
 app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr" # Spaces removed
+app.config["MAIL_PASSWORD"] = "pkcqqvpueyazeuxr" # Spaces removed
 app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
 mail = Mail(app)
@@ -2162,23 +2162,36 @@ def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
-#test
-@app.route('/test-email-now')
-def test_email_now():
-    # 1. Setup the message
-    msg = Message("Debug Test Email", recipients=["nahianlamisa12@gmail.com"])
-    msg.body = "If you are reading this, the email system is working perfectly!"
-    
-    # 2. Try to send it directly (Synchronously)
-    try:
-        mail.send(msg)
-        return "<h1>✅ SUCCESS!</h1> <p>Email was sent. Check your inbox and SPAM folder.</p>"
-    except Exception as e:
-        # 3. If it fails, show the EXACT error on screen
-        return f"<h1>❌ FAILED</h1> <h3>Error Message:</h3> <p>{str(e)}</p>"
 
 # Ensure the 'app' variable exists for Vercel to find
 app = app
+
+# --- PASTE THIS AT THE BOTTOM OF app.py ---
+from flask_mail import Message
+from flask import current_app
+
+@app.route('/debug-mail')
+def debug_mail():
+    try:
+        # 1. Print settings to screen (Masking password)
+        config_info = f"""
+        Server: {app.config.get('MAIL_SERVER')}
+        Port: {app.config.get('MAIL_PORT')}
+        SSL: {app.config.get('MAIL_USE_SSL')}
+        User: {app.config.get('MAIL_USERNAME')}
+        Password Length: {len(app.config.get('MAIL_PASSWORD'))} (Should be 16)
+        """
+        
+        # 2. Try to send
+        msg = Message("Debug Email", recipients=["nahianlamisa12@gmail.com"])
+        msg.body = "If you see this, it works!"
+        mail.send(msg)
+        
+        return f"<h1>✅ Email Sent!</h1><pre>{config_info}</pre>"
+        
+    except Exception as e:
+        # Catch ANY error and print it
+        return f"<h1>❌ Error Occurred</h1><p>{str(e)}</p><pre>{config_info}</pre>"
 
 # RUN APP
 if __name__ == '__main__':
