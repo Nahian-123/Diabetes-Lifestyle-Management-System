@@ -1531,12 +1531,18 @@ def patient_prescription_details(pres_id):
 from flask_mail import Mail, Message
 from models.doctor_model import get_appointment_details #WITH MAIL
 
+# app.config["MAIL_SERVER"] = "smtp.gmail.com"
+# app.config["MAIL_PORT"] = 587
+# app.config["MAIL_USE_TLS"] = True
+# app.config["MAIL_USE_SSL"] = False
+# app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
+# app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_PORT"] = 465             # Changed from 587
+app.config["MAIL_USE_TLS"] = False        # Changed to False
+app.config["MAIL_USE_SSL"] = True         # Changed to True
 app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
+app.config["MAIL_PASSWORD"] = "pkcqqvpueyazeuxr" # Spaces removed
 app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
 mail = Mail(app)
@@ -1549,7 +1555,8 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
             f"Hello {patient_name},\n\n"
             f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
             f"To complete and confirm your appointment, please make the online payment of 1000 BDT in out website: \n"
-            f"http://127.0.0.1:5000/ \n"
+            # f"http://127.0.0.1:5000/ \n"
+            f"https://diabetes-lifestyle-management-system-production.up.railway.app/ \n"
             f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
         )
 
