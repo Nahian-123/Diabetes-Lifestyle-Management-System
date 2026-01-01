@@ -1555,6 +1555,14 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_PASSWORD"] = os.getenv("SENDGRID_API_KEY")
 # app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
 
+app.config["MAIL_SERVER"] = "smtp.mailgun.org"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_USERNAME"] = "postmaster@sandbox99349d4af72e4938a2bd68b3d1e7f0b6.mailgun.org"
+app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd"  # Replace with actual password
+app.config["MAIL_DEFAULT_SENDER"] = "postmaster@sandbox99349d4af72e4938a2bd68b3d1e7f0b6.mailgun.org"
+
 mail = Mail(app)
 
 #added for deploying
