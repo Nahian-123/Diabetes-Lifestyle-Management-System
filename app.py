@@ -1,16 +1,3 @@
-# --- FORCE IPV4 PATCH (Must be at the very top) ---
-import socket
-# Save the original function
-original_getaddrinfo = socket.getaddrinfo
-
-# Define a new function that forces IPv4 (AF_INET)
-def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
-
-# Replace the socket function with our new one
-socket.getaddrinfo = ipv4_getaddrinfo
-# --------------------------------------------------
-
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import mysql.connector
 from datetime import datetime, date, time, timedelta
@@ -1555,7 +1542,7 @@ app.config["MAIL_PORT"] = 587             # Changed from 587
 app.config["MAIL_USE_TLS"] = True        # Changed to False
 app.config["MAIL_USE_SSL"] = False         # Changed to True
 app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-app.config["MAIL_PASSWORD"] = "pkcqqvpueyazeuxr" # Spaces removed
+app.config["MAIL_PASSWORD"] = "hjpc nvaq lpal fbxd" # Spaces removed
 app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
 mail = Mail(app)
@@ -2178,34 +2165,6 @@ def logout():
 
 # Ensure the 'app' variable exists for Vercel to find
 app = app
-
-# --- PASTE AT THE BOTTOM OF app.py ---
-import smtplib
-
-@app.route('/debug-connection')
-def debug_connection():
-    output = ["<h1>Connection Test Results</h1>"]
-    
-    # TEST 1: Port 465 (SSL) - The Preferred Way
-    output.append("<h3>Attempting Port 465 (SSL)...</h3>")
-    try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30)
-        server.quit()
-        output.append("<p style='color:green'><b>✅ Port 465 Success!</b> Server is reachable.</p>")
-    except Exception as e:
-        output.append(f"<p style='color:red'>❌ Port 465 Failed: {str(e)}</p>")
-
-    # TEST 2: Port 587 (TLS) - The Backup Way
-    output.append("<h3>Attempting Port 587 (TLS)...</h3>")
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
-        server.starttls()
-        server.quit()
-        output.append("<p style='color:green'><b>✅ Port 587 Success!</b> Server is reachable.</p>")
-    except Exception as e:
-        output.append(f"<p style='color:red'>❌ Port 587 Failed: {str(e)}</p>")
-
-    return "".join(output)
 
 # RUN APP
 if __name__ == '__main__':
