@@ -2183,6 +2183,44 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
 
+# --- PASTE AT THE BOTTOM OF APP.PY ---
+@app.route('/test-email-setup')
+def test_email_setup():
+    status = ["<h1>Email System Diagnostic</h1>"]
+    
+    # Check 1: Is Flask-Mail imported?
+    try:
+        from flask_mail import Mail, Message
+        status.append("<p style='color:green'>✅ Flask-Mail library is installed and imported.</p>")
+    except ImportError:
+        status.append("<p style='color:red'>❌ CRITICAL: Flask-Mail is in requirements.txt but CANNOT be imported in python.</p>")
+        return "".join(status)
+
+    # Check 2: Is the Config loaded?
+    server = app.config.get("MAIL_SERVER")
+    if server == "smtp.gmail.com":
+        status.append(f"<p style='color:green'>✅ Configuration Found: {server}</p>")
+    else:
+        status.append(f"<p style='color:red'>❌ Configuration MISSING! App thinks server is: {server}</p>")
+        status.append("<p>You need to paste the app.config lines near the top of app.py.</p>")
+
+    # Check 3: Does the 'mail' variable exist?
+    if 'mail' in globals():
+        status.append("<p style='color:green'>✅ 'mail' variable exists.</p>")
+    else:
+        status.append("<p style='color:red'>❌ 'mail' variable is MISSING. (You forgot 'mail = Mail(app)')</p>")
+
+    # Check 4: Try to send
+    try:
+        msg = Message("Test", recipients=["nahianlamisa12@gmail.com"])
+        msg.body = "If you see this, it works."
+        mail.send(msg)
+        status.append("<p style='color:green'><b>✅ SUCCESS! Email sent.</b></p>")
+    except Exception as e:
+        status.append(f"<p style='color:red'>❌ Sending Failed: {str(e)}</p>")
+
+    return "".join(status)
+
 # Ensure the 'app' variable exists for Vercel to find
 app = app
 
