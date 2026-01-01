@@ -2189,7 +2189,7 @@ def debug_connection():
     # TEST 1: Port 465 (SSL) - The Preferred Way
     output.append("<h3>Attempting Port 465 (SSL)...</h3>")
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=5)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30)
         server.quit()
         output.append("<p style='color:green'><b>✅ Port 465 Success!</b> Server is reachable.</p>")
     except Exception as e:
