@@ -1,3 +1,16 @@
+# --- FORCE IPV4 PATCH (Must be at the very top) ---
+import socket
+# Save the original function
+original_getaddrinfo = socket.getaddrinfo
+
+# Define a new function that forces IPv4 (AF_INET)
+def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+# Replace the socket function with our new one
+socket.getaddrinfo = ipv4_getaddrinfo
+# --------------------------------------------------
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 import mysql.connector
 from datetime import datetime, date, time, timedelta
