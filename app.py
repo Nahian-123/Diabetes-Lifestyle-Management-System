@@ -1551,9 +1551,9 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
 # app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 465             # Changed from 587
-app.config["MAIL_USE_TLS"] = False        # Changed to False
-app.config["MAIL_USE_SSL"] = True         # Changed to True
+app.config["MAIL_PORT"] = 587             # Changed from 587
+app.config["MAIL_USE_TLS"] = True        # Changed to False
+app.config["MAIL_USE_SSL"] = False         # Changed to True
 app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
 app.config["MAIL_PASSWORD"] = "pkcqqvpueyazeuxr" # Spaces removed
 app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
