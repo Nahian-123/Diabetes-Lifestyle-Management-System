@@ -1634,14 +1634,21 @@ from flask import session
 
 import os
 import requests
-from flask import redirect, request, url_for, flash
+from flask import redirect, request, url_for, flash, session
 from google_auth_oauthlib.flow import Flow
 from pip._vendor import cachecontrol
 import google.auth.transport.requests
 
-# --- 1. CONFIGURATION: Tell the app where to find your keys ---
-# This reads the variables you set in Railway
+# --- 1. CONFIGURATION ---
 GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+def get_redirect_uri():
+    """Helper to force HTTPS on Railway"""
+    uri = url_for("oauth2callback_gmail", _external=True)
+    # Railway sometimes generates 'http' links internally, but Google needs 'https'
+    if uri.startswith("http:"):
+        uri = uri.replace("http:", "https:", 1)
+    return uri
 
 def get_gmail_client_config():
     return {
@@ -1650,22 +1657,20 @@ def get_gmail_client_config():
             "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            # This MUST match the URL you added in Google Cloud Console
-            "redirect_uris": [url_for("oauth2callback_gmail", _external=True)], 
+            "redirect_uris": [get_redirect_uri()], 
         }
     }
 
-# --- 2. LOGIN ROUTE: Where you go to start the login ---
+# --- 2. LOGIN ROUTE ---
 @app.route("/authorize_gmail")
 def authorize_gmail():
-    # Load the config
     flow = Flow.from_client_config(
         get_gmail_client_config(),
         scopes=GMAIL_SCOPES
     )
     
-    # The 'redirect_uri' parameter must be set specifically here for the flow
-    flow.redirect_uri = url_for("oauth2callback_gmail", _external=True)
+    # FORCE HTTPS HERE
+    flow.redirect_uri = get_redirect_uri()
 
     authorization_url, state = flow.authorization_url(
         access_type="offline",
@@ -1674,41 +1679,42 @@ def authorize_gmail():
     session["gmail_state"] = state
     return redirect(authorization_url)
 
-# --- 3. CALLBACK ROUTE: Where Google sends you back ---
+# --- 3. CALLBACK ROUTE ---
 @app.route("/oauth2callback_gmail")
 def oauth2callback_gmail():
-    state = session.get("gmail_credentials")
-    
-    # (Optional) Verify state if you want strict security, 
-    # but for now let's just process the token.
-
+    # FORCE HTTPS HERE TOO
     flow = Flow.from_client_config(
         get_gmail_client_config(),
         scopes=GMAIL_SCOPES,
         state=session.get("gmail_state")
     )
     
-    # Important: Tell the flow exactly where we are right now
-    flow.redirect_uri = url_for("oauth2callback_gmail", _external=True)
+    flow.redirect_uri = get_redirect_uri()
 
-    # Exchange the code in the URL for a token
-    flow.fetch_token(authorization_response=request.url)
-    credentials = flow.credentials
+    # Exchange the code for a token
+    try:
+        # We must manually pass the authorization response to ensure it matches
+        authorization_response = request.url
+        if authorization_response.startswith("http:"):
+            authorization_response = authorization_response.replace("http:", "https:", 1)
 
-    # SAVE THE CREDENTIALS so the email function can find them later
-    session["gmail_credentials"] = {
-        "token": credentials.token,
-        "refresh_token": credentials.refresh_token,
-        "token_uri": credentials.token_uri,
-        "client_id": credentials.client_id,
-        "client_secret": credentials.client_secret,
-        "scopes": credentials.scopes,
-    }
+        flow.fetch_token(authorization_response=authorization_response)
+        credentials = flow.credentials
 
-    flash("Gmail linked successfully! Emails will now work.", "success")
-    
-    # Redirect to your main dashboard or home page
-    return redirect("/")
+        session["gmail_credentials"] = {
+            "token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "token_uri": credentials.token_uri,
+            "client_id": credentials.client_id,
+            "client_secret": credentials.client_secret,
+            "scopes": credentials.scopes,
+        }
+
+        flash("Gmail linked successfully!", "success")
+        return redirect("/") # Redirect to home
+        
+    except Exception as e:
+        return f"Authentication failed: {str(e)}"
 
 def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
     
