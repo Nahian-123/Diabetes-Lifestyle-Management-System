@@ -725,6 +725,8 @@ from models.appointment_model import get_appointment_by_id
 from models.patient_model import get_upcoming_patient_appointments,get_patient_appointments_with_details
 from models.doctor_model import get_doctor_by_id
 
+from datetime import datetime, timezone, timedelta
+
 
 @app.route('/update_patient_profile', methods=['GET', 'POST'])
 def update_patient_profile():
@@ -754,13 +756,16 @@ def update_patient_profile():
         gl_b_dinner = request.form['gl_b_dinner']
         
         #Checking if glucose values changed
+        bd_tz = timezone(timedelta(hours=6)) #to get BD time zone
         values_changed = (
             float(gl_b_breakfast) != float(patient['gl_b_breakfast']) or
             float(gl_a_breakfast) != float(patient['gl_a_breakfast']) or
             float(gl_b_lunch) != float(patient['gl_b_lunch']) or
             float(gl_b_dinner) != float(patient['gl_b_dinner'])
         )
-        updated_on = datetime.now() if values_changed else patient.get('updated_on')
+        # updated_on = datetime.now() if values_changed else patient.get('updated_on')
+        #to get BD time zone
+        updated_on = datetime.now(bd_tz) if values_changed else patient.get('updated_on')
         
         update_patient_details(dob, phone, weight, gender, gl_b_breakfast, gl_a_breakfast, gl_b_lunch, gl_b_dinner, updated_on, p_id)
         
