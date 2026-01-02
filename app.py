@@ -519,22 +519,9 @@ def doctor_appointments():
         flash("Session timed out. Please login again.")
         return redirect(url_for('login'))
     
-    # if request.method == 'POST':
-    #     app_id = request.form.get('app_id')
-    #     action = request.form.get('action')
-        
-    # NAHIAN M3->THE FLAG: Check if the Gmail credentials exist in the session
-    # This will be False after every redeployment
-    mail_ready = "gmail_credentials" in session
-
     if request.method == 'POST':
-        if not mail_ready:
-            flash("Action blocked: Admin (nahianlamisa12@gmail.com) must authorize Gmail after redeploy.", "error")
-            return redirect(url_for('doctor_appointments'))
-
         app_id = request.form.get('app_id')
         action = request.form.get('action')
-    #=====
         
         # 🚨 BLOCK CONFIRM IF GOOGLE CALENDAR NOT CONNECTED
         if action == "Confirm" and not session.get("google_calendar_connected"):
