@@ -157,6 +157,11 @@
     {% if not hide_sidebar %}
     <div class="sidebar">
         <div>
+            <div class="sidebar-logo text-center my-3">
+                        <img src="{{ url_for('static', filename='DLMS logo.png') }}" class="img-fluid sidebar-logo-img"
+                            alt="Logo">
+                        <h5 class="mt-2 fw-bold">DLMS</h5>
+            </div>
             <a href="{{ url_for('admin_dashboard') }}" {% if request.path==url_for('admin_dashboard') %}class="active"
                 {% endif %}><i class="bi bi-grid-fill"></i>Dashboard</a>
             <a href="{{ url_for('admin_doctors') }}" {% if request.path==url_for('admin_doctors') %}class="active" {%
