@@ -1680,59 +1680,160 @@ def authorize_gmail():
     return redirect(authorization_url)
 
 # --- 3. CALLBACK ROUTE ---
+# @app.route("/oauth2callback_gmail") #WORKED
+# def oauth2callback_gmail():
+#     # FORCE HTTPS HERE TOO
+#     flow = Flow.from_client_config(
+#         get_gmail_client_config(),
+#         scopes=GMAIL_SCOPES,
+#         state=session.get("gmail_state")
+#     )
+    
+#     flow.redirect_uri = get_redirect_uri()
+
+#     # Exchange the code for a token
+#     try:
+#         # We must manually pass the authorization response to ensure it matches
+#         authorization_response = request.url
+#         if authorization_response.startswith("http:"):
+#             authorization_response = authorization_response.replace("http:", "https:", 1)
+
+#         flow.fetch_token(authorization_response=authorization_response)
+#         credentials = flow.credentials
+
+#         session["gmail_credentials"] = {
+#             "token": credentials.token,
+#             "refresh_token": credentials.refresh_token,
+#             "token_uri": credentials.token_uri,
+#             "client_id": credentials.client_id,
+#             "client_secret": credentials.client_secret,
+#             "scopes": credentials.scopes,
+#         }
+
+#         flash("Gmail linked successfully!", "success")
+#         return redirect("/") # Redirect to home
+        
+#     except Exception as e:
+#         return f"Authentication failed: {str(e)}"
+
+import json
+
+# Define the file path
+CREDENTIALS_FILE = "gmail_token.json"
+
 @app.route("/oauth2callback_gmail")
 def oauth2callback_gmail():
-    # FORCE HTTPS HERE TOO
+    # 1. Force HTTPS (Keep your existing fix)
     flow = Flow.from_client_config(
         get_gmail_client_config(),
         scopes=GMAIL_SCOPES,
         state=session.get("gmail_state")
     )
+    flow.redirect_uri = url_for("oauth2callback_gmail", _external=True)
+    if flow.redirect_uri.startswith("http:"):
+        flow.redirect_uri = flow.redirect_uri.replace("http:", "https:", 1)
+
+    authorization_response = request.url
+    if authorization_response.startswith("http:"):
+        authorization_response = authorization_response.replace("http:", "https:", 1)
+
+    # 2. Get the Token
+    flow.fetch_token(authorization_response=authorization_response)
+    credentials = flow.credentials
+
+    # 3. SAVE TO FILE (Instead of Session)
+    creds_data = {
+        "token": credentials.token,
+        "refresh_token": credentials.refresh_token,
+        "token_uri": credentials.token_uri,
+        "client_id": credentials.client_id,
+        "client_secret": credentials.client_secret,
+        "scopes": credentials.scopes,
+    }
     
-    flow.redirect_uri = get_redirect_uri()
+    with open(CREDENTIALS_FILE, 'w') as f:
+        json.dump(creds_data, f)
 
-    # Exchange the code for a token
-    try:
-        # We must manually pass the authorization response to ensure it matches
-        authorization_response = request.url
-        if authorization_response.startswith("http:"):
-            authorization_response = authorization_response.replace("http:", "https:", 1)
+    return "<h1>System Linked!</h1> <p>All emails will now be sent from this account.</p>"
 
-        flow.fetch_token(authorization_response=authorization_response)
-        credentials = flow.credentials
+# def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None): #WORKED
+    
+#     # 1. LOGIC: Build the Subject and Body (Your original logic)
+#     if action == "Confirmed" and appointment_type == "telemedicine":
+#         subject = f"Appointment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
+#         body = (
+#             f"Hello {patient_name},\n\n"
+#             f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
+#             f"To complete and confirm your appointment, please make the online payment of 1000 BDT in our website: \n"
+#             f"https://your-railway-app-name.up.railway.app/ \n"  # CHANGED: Update this to your real Railway URL
+#             f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
+#         )
 
-        session["gmail_credentials"] = {
-            "token": credentials.token,
-            "refresh_token": credentials.refresh_token,
-            "token_uri": credentials.token_uri,
-            "client_id": credentials.client_id,
-            "client_secret": credentials.client_secret,
-            "scopes": credentials.scopes,
-        }
+#     else:
+#         subject = f"Appointment ID- {app_id}: Your Appointment Has Been {action}"
 
-        flash("Gmail linked successfully!", "success")
-        return redirect("/") # Redirect to home
+#         # Default email body
+#         body = (
+#             f"Hello {patient_name},\n\n"
+#             f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
+#         )
+
+#     body += "\nIf you need any help, feel free to contact us.\nThank you."
+
+#     # 2. AUTH: Get Gmail Credentials from Session
+#     creds_data = session.get("gmail_credentials")
+    
+#     if not creds_data:
+#         print("Error: Gmail credentials not found in session. Please log in via /authorize_gmail first.")
+#         return False
+
+#     # Rebuild the credentials object
+#     creds = Credentials(
+#         token=creds_data["token"],
+#         refresh_token=creds_data["refresh_token"],
+#         token_uri=creds_data["token_uri"],
+#         client_id=creds_data["client_id"],
+#         client_secret=creds_data["client_secret"],
+#         scopes=creds_data["scopes"],
+#     )
+
+#     # 3. SEND: Connect to Gmail API and send
+#     try:
+#         service = build("gmail", "v1", credentials=creds)
+
+#         # Create the email structure
+#         message = MIMEText(body)
+#         message["to"] = patient_email
+#         message["subject"] = subject
         
-    except Exception as e:
-        return f"Authentication failed: {str(e)}"
+#         # Encode as Base64 (Required by Gmail API)
+#         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+#         body_payload = {"raw": raw_message}
+
+#         # Send the API request
+#         sent_message = service.users().messages().send(userId="me", body=body_payload).execute()
+        
+#         print(f"{action} email sent successfully! Msg ID: {sent_message['id']}")
+#         return True
+
+#     except Exception as e:
+#         print(f"Error sending email via Gmail API: {e}")
+#         return False
 
 def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
     
-    # 1. LOGIC: Build the Subject and Body (Your original logic)
+    # --- 1. LOGIC: Build the Subject and Body ---
     if action == "Confirmed" and appointment_type == "telemedicine":
         subject = f"Appointment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
         body = (
             f"Hello {patient_name},\n\n"
             f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
             f"To complete and confirm your appointment, please make the online payment of 1000 BDT in our website: \n"
-            f"https://your-railway-app-name.up.railway.app/ \n"  # CHANGED: Update this to your real Railway URL
+            f"https://diabetes-lifestyle-management-system-production.up.railway.app/ \n" 
             f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
         )
-
     else:
         subject = f"Appointment ID- {app_id}: Your Appointment Has Been {action}"
-
-        # Default email body
         body = (
             f"Hello {patient_name},\n\n"
             f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
@@ -1740,37 +1841,47 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
 
     body += "\nIf you need any help, feel free to contact us.\nThank you."
 
-    # 2. AUTH: Get Gmail Credentials from Session
-    creds_data = session.get("gmail_credentials")
-    
-    if not creds_data:
-        print("Error: Gmail credentials not found in session. Please log in via /authorize_gmail first.")
+    # --- 2. AUTH: Load Credentials from FILE (Not Session) ---
+    if not os.path.exists(CREDENTIALS_FILE):
+        print("Error: 'gmail_token.json' not found. Admin must login via /authorize_gmail first.")
         return False
 
-    # Rebuild the credentials object
-    creds = Credentials(
-        token=creds_data["token"],
-        refresh_token=creds_data["refresh_token"],
-        token_uri=creds_data["token_uri"],
-        client_id=creds_data["client_id"],
-        client_secret=creds_data["client_secret"],
-        scopes=creds_data["scopes"],
-    )
-
-    # 3. SEND: Connect to Gmail API and send
     try:
+        with open(CREDENTIALS_FILE, 'r') as token_file:
+            creds_data = json.load(token_file)
+
+        # Rebuild the credentials object
+        creds = Credentials(
+            token=creds_data["token"],
+            refresh_token=creds_data["refresh_token"],
+            token_uri=creds_data["token_uri"],
+            client_id=creds_data["client_id"],
+            client_secret=creds_data["client_secret"],
+            scopes=creds_data["scopes"],
+        )
+
+        # --- 3. AUTO-REFRESH: Check if token is expired ---
+        if creds.expired and creds.refresh_token:
+            print("Token expired, refreshing automatically...")
+            request = google.auth.transport.requests.Request()
+            creds.refresh(request)
+            
+            # Save the new refreshed token back to the file
+            # This ensures the next email sends faster
+            creds_data["token"] = creds.token
+            with open(CREDENTIALS_FILE, 'w') as token_file:
+                json.dump(creds_data, token_file)
+
+        # --- 4. SEND: Connect to Gmail API ---
         service = build("gmail", "v1", credentials=creds)
 
-        # Create the email structure
         message = MIMEText(body)
         message["to"] = patient_email
         message["subject"] = subject
         
-        # Encode as Base64 (Required by Gmail API)
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
         body_payload = {"raw": raw_message}
 
-        # Send the API request
         sent_message = service.users().messages().send(userId="me", body=body_payload).execute()
         
         print(f"{action} email sent successfully! Msg ID: {sent_message['id']}")
@@ -2332,70 +2443,6 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
 
-# --- PASTE AT THE BOTTOM OF APP.PY ---
-@app.route('/test-email-setup')
-def test_email_setup():
-    status = ["<h1>Email System Diagnostic</h1>"]
-    
-    # Check 1: Is Flask-Mail imported?
-    try:
-        from flask_mail import Mail, Message
-        status.append("<p style='color:green'>✅ Flask-Mail library is installed and imported.</p>")
-    except ImportError:
-        status.append("<p style='color:red'>❌ CRITICAL: Flask-Mail is in requirements.txt but CANNOT be imported in python.</p>")
-        return "".join(status)
-
-    # Check 2: Is the Config loaded?
-    server = app.config.get("MAIL_SERVER")
-    if server == "smtp.gmail.com":
-        status.append(f"<p style='color:green'>✅ Configuration Found: {server}</p>")
-    else:
-        status.append(f"<p style='color:red'>❌ Configuration MISSING! App thinks server is: {server}</p>")
-        status.append("<p>You need to paste the app.config lines near the top of app.py.</p>")
-
-    # Check 3: Does the 'mail' variable exist?
-    if 'mail' in globals():
-        status.append("<p style='color:green'>✅ 'mail' variable exists.</p>")
-    else:
-        status.append("<p style='color:red'>❌ 'mail' variable is MISSING. (You forgot 'mail = Mail(app)')</p>")
-
-    # Check 4: Try to send
-    try:
-        msg = Message("Test", recipients=["nahianlamisa12@gmail.com"])
-        msg.body = "If you see this, it works."
-        mail.send(msg)
-        status.append("<p style='color:green'><b>✅ SUCCESS! Email sent.</b></p>")
-    except Exception as e:
-        status.append(f"<p style='color:red'>❌ Sending Failed: {str(e)}</p>")
-
-    return "".join(status)
-
-@app.route("/test_email")
-def test_email_sending():
-    # 1. Check if we are logged in
-    if "gmail_credentials" not in session:
-        return "Error: You are not logged in. Please go to <a href='/authorize_gmail'>/authorize_gmail</a> first."
-
-    # 2. Define fake details for testing
-    # REPLACE THIS WITH YOUR OWN EMAIL ADDRESS to see if it arrives!
-    my_personal_email = "nahianlamisa12@gmail.com" 
-    
-    # 3. Call your existing function
-    success = send_appointment_email(
-        app_id="TEST-999",
-        appointment_date="2026-01-01 10:00 AM",
-        patient_email=my_personal_email, 
-        patient_name="Test Patient",
-        doctor_name="Dr. Test",
-        action="Confirmed",
-        appointment_type="telemedicine"
-    )
-
-    # 4. Show result
-    if success:
-        return f"<h1>Success!</h1> <p>Email sent to {my_personal_email}. Check your inbox (and spam folder)!</p>"
-    else:
-        return "<h1>Failed.</h1> <p>Check the Railway Logs for the error message.</p>"
 
 # Ensure the 'app' variable exists for Vercel to find
 app = app
