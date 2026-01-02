@@ -1,11 +1,11 @@
 # ========================================================
-import socket
-original_getaddrinfo = socket.getaddrinfo
+# import socket
+# original_getaddrinfo = socket.getaddrinfo
 
-def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-    return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+# def ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+#     return original_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
 
-socket.getaddrinfo = ipv4_getaddrinfo
+# socket.getaddrinfo = ipv4_getaddrinfo
 # ========================================================
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
@@ -1549,73 +1549,65 @@ from models.doctor_model import get_appointment_details #WITH MAIL
 # app.config["MAIL_PASSWORD"] = "pkcq qvpu eyaz euxr"
 
 #fix from gemini
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 465             # Changed from 587
-app.config["MAIL_USE_TLS"] = False        # Changed to False
-app.config["MAIL_USE_SSL"] = True         # Changed to True
-app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
-app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd" # Spaces removed
-app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
+# app.config["MAIL_SERVER"] = "smtp.gmail.com"
+# app.config["MAIL_PORT"] = 465             # Changed from 587
+# app.config["MAIL_USE_TLS"] = False        # Changed to False
+# app.config["MAIL_USE_SSL"] = True         # Changed to True
+# app.config["MAIL_USERNAME"] = "nahianlamisa12@gmail.com"
+# app.config["MAIL_PASSWORD"] = "hjpcnvaqlpalfbxd" # Spaces removed
+# app.config["MAIL_DEFAULT_SENDER"] = "DLMS Notification <nahianlamisa12@gmail.com>"
 
-#fix from copilot
-# app.config["MAIL_SERVER"] = "smtp.sendgrid.net"
-# app.config["MAIL_PORT"] = 587
-# app.config["MAIL_USE_TLS"] = True
-# app.config["MAIL_USERNAME"] = "apikey"  # literally the word 'apikey'
-# app.config["MAIL_PASSWORD"] = os.getenv("SENDGRID_API_KEY")
-# app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
+# mail = Mail(app)
 
-mail = Mail(app)
-
-#added for deploying
-from threading import Thread
-def send_async_email(app, msg):
-    with app.app_context():
-        try:
-            mail.send(msg)
-            print("Background email sent successfully!")
-        except Exception as e:
-            print(f"Failed to send background email: {e}")
+# #added for deploying
+# from threading import Thread
+# def send_async_email(app, msg):
+#     with app.app_context():
+#         try:
+#             mail.send(msg)
+#             print("Background email sent successfully!")
+#         except Exception as e:
+#             print(f"Failed to send background email: {e}")
 #==done==
 
-def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
+# def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
     
-    if action == "Confirmed" and appointment_type == "telemedicine":
-        subject = f"Appintment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
-        body = (
-            f"Hello {patient_name},\n\n"
-            f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
-            f"To complete and confirm your appointment, please make the online payment of 1000 BDT in out website: \n"
-            # f"http://127.0.0.1:5000/ \n"
-            f"https://diabetes-lifestyle-management-system-production.up.railway.app/ \n"
-            f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
-        )
+#     if action == "Confirmed" and appointment_type == "telemedicine":
+#         subject = f"Appintment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
+#         body = (
+#             f"Hello {patient_name},\n\n"
+#             f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
+#             f"To complete and confirm your appointment, please make the online payment of 1000 BDT in out website: \n"
+#             # f"http://127.0.0.1:5000/ \n"
+#             f"https://diabetes-lifestyle-management-system-production.up.railway.app/ \n"
+#             f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
+#         )
 
-    else:
-       subject = f"Appintment ID- {app_id}: Your Appointment Has Been {action}"
+#     else:
+#        subject = f"Appintment ID- {app_id}: Your Appointment Has Been {action}"
 
-       # Default email body
-       body = (
-           f"Hello {patient_name},\n\n"
-           f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
-        )
+#        # Default email body
+#        body = (
+#            f"Hello {patient_name},\n\n"
+#            f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
+#         )
 
 
-    body += "\nIf you need any help, feel free to contact us.\nThank you."
+#     body += "\nIf you need any help, feel free to contact us.\nThank you."
 
-    #===removed_for_deploy===
-    msg = Message(subject, recipients=[patient_email])
-    msg.body = body
+#     #===removed_for_deploy===
+#     msg = Message(subject, recipients=[patient_email])
+#     msg.body = body
     
-    try:
-        mail.send(msg)
-        print(f"{action} email sent.")
-        return True
-    except Exception as e:
-        print("Email error:", e)
-        return False
+#     try:
+#         mail.send(msg)
+#         print(f"{action} email sent.")
+#         return True
+#     except Exception as e:
+#         print("Email error:", e)
+#         return False
 
-    # ... (your existing body and subject setup) ...
+    # ... (your existing body and subject setup) ...added threading
 
     # msg = Message(subject, recipients=[patient_email])
     # msg.body = body
@@ -1630,7 +1622,80 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
     #     print("Email thread error:", e)
     #     return False
 
-#Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.      
+#Then update doctor_appointments function to call this send_appointment_email function after updating appointment status.    
+
+
+
+import base64
+from email.mime.text import MIMEText
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from flask import session
+
+def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
+    
+    # 1. LOGIC: Build the Subject and Body (Your original logic)
+    if action == "Confirmed" and appointment_type == "telemedicine":
+        subject = f"Appointment ID- {app_id}: Payment Needed to Confirm Your Telemedicine Appointment"
+        body = (
+            f"Hello {patient_name},\n\n"
+            f"Your telemedicine appointment request with Dr. {doctor_name} on {appointment_date} has been reviewed.\n"
+            f"To complete and confirm your appointment, please make the online payment of 1000 BDT in our website: \n"
+            f"https://your-railway-app-name.up.railway.app/ \n"  # CHANGED: Update this to your real Railway URL
+            f"Once the payment is completed, your appointment will be fully confirmed and you will receive your online meeting link prior to your appointment.\n"
+        )
+
+    else:
+        subject = f"Appointment ID- {app_id}: Your Appointment Has Been {action}"
+
+        # Default email body
+        body = (
+            f"Hello {patient_name},\n\n"
+            f"Your appointment with Dr. {doctor_name} on {appointment_date} has been {action.lower()}.\n"
+        )
+
+    body += "\nIf you need any help, feel free to contact us.\nThank you."
+
+    # 2. AUTH: Get Gmail Credentials from Session
+    creds_data = session.get("gmail_credentials")
+    
+    if not creds_data:
+        print("Error: Gmail credentials not found in session. Please log in via /authorize_gmail first.")
+        return False
+
+    # Rebuild the credentials object
+    creds = Credentials(
+        token=creds_data["token"],
+        refresh_token=creds_data["refresh_token"],
+        token_uri=creds_data["token_uri"],
+        client_id=creds_data["client_id"],
+        client_secret=creds_data["client_secret"],
+        scopes=creds_data["scopes"],
+    )
+
+    # 3. SEND: Connect to Gmail API and send
+    try:
+        service = build("gmail", "v1", credentials=creds)
+
+        # Create the email structure
+        message = MIMEText(body)
+        message["to"] = patient_email
+        message["subject"] = subject
+        
+        # Encode as Base64 (Required by Gmail API)
+        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+        body_payload = {"raw": raw_message}
+
+        # Send the API request
+        sent_message = service.users().messages().send(userId="me", body=body_payload).execute()
+        
+        print(f"{action} email sent successfully! Msg ID: {sent_message['id']}")
+        return True
+
+    except Exception as e:
+        print(f"Error sending email via Gmail API: {e}")
+        return False
+    
 #======NAHIAN M3 (MAIL) ends============================================================================
 
 
