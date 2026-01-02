@@ -1716,7 +1716,6 @@ def authorize_gmail():
 #     except Exception as e:
 #         return f"Authentication failed: {str(e)}"
 
-import json
 
 # Define the file path
 CREDENTIALS_FILE = "gmail_token.json"
@@ -1878,6 +1877,7 @@ def send_appointment_email(app_id, appointment_date, patient_email, patient_name
         message = MIMEText(body)
         message["to"] = patient_email
         message["subject"] = subject
+        message["from"] = "DLMS Notification <nahianlamisa12@gmail.com>"
         
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
         body_payload = {"raw": raw_message}
