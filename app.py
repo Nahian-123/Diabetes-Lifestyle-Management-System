@@ -2370,6 +2370,33 @@ def test_email_setup():
 
     return "".join(status)
 
+@app.route("/test_email")
+def test_email_sending():
+    # 1. Check if we are logged in
+    if "gmail_credentials" not in session:
+        return "Error: You are not logged in. Please go to <a href='/authorize_gmail'>/authorize_gmail</a> first."
+
+    # 2. Define fake details for testing
+    # REPLACE THIS WITH YOUR OWN EMAIL ADDRESS to see if it arrives!
+    my_personal_email = "nahianlamisa12@gmail.com" 
+    
+    # 3. Call your existing function
+    success = send_appointment_email(
+        app_id="TEST-999",
+        appointment_date="2026-01-01 10:00 AM",
+        patient_email=my_personal_email, 
+        patient_name="Test Patient",
+        doctor_name="Dr. Test",
+        action="Confirmed",
+        appointment_type="telemedicine"
+    )
+
+    # 4. Show result
+    if success:
+        return f"<h1>Success!</h1> <p>Email sent to {my_personal_email}. Check your inbox (and spam folder)!</p>"
+    else:
+        return "<h1>Failed.</h1> <p>Check the Railway Logs for the error message.</p>"
+
 # Ensure the 'app' variable exists for Vercel to find
 app = app
 
