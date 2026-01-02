@@ -1632,6 +1632,84 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from flask import session
 
+import os
+import requests
+from flask import redirect, request, url_for, flash
+from google_auth_oauthlib.flow import Flow
+from pip._vendor import cachecontrol
+import google.auth.transport.requests
+
+# --- 1. CONFIGURATION: Tell the app where to find your keys ---
+# This reads the variables you set in Railway
+GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+def get_gmail_client_config():
+    return {
+        "web": {
+            "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            # This MUST match the URL you added in Google Cloud Console
+            "redirect_uris": [url_for("oauth2callback_gmail", _external=True)], 
+        }
+    }
+
+# --- 2. LOGIN ROUTE: Where you go to start the login ---
+@app.route("/authorize_gmail")
+def authorize_gmail():
+    # Load the config
+    flow = Flow.from_client_config(
+        get_gmail_client_config(),
+        scopes=GMAIL_SCOPES
+    )
+    
+    # The 'redirect_uri' parameter must be set specifically here for the flow
+    flow.redirect_uri = url_for("oauth2callback_gmail", _external=True)
+
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        prompt="consent"
+    )
+    session["gmail_state"] = state
+    return redirect(authorization_url)
+
+# --- 3. CALLBACK ROUTE: Where Google sends you back ---
+@app.route("/oauth2callback_gmail")
+def oauth2callback_gmail():
+    state = session.get("gmail_credentials")
+    
+    # (Optional) Verify state if you want strict security, 
+    # but for now let's just process the token.
+
+    flow = Flow.from_client_config(
+        get_gmail_client_config(),
+        scopes=GMAIL_SCOPES,
+        state=session.get("gmail_state")
+    )
+    
+    # Important: Tell the flow exactly where we are right now
+    flow.redirect_uri = url_for("oauth2callback_gmail", _external=True)
+
+    # Exchange the code in the URL for a token
+    flow.fetch_token(authorization_response=request.url)
+    credentials = flow.credentials
+
+    # SAVE THE CREDENTIALS so the email function can find them later
+    session["gmail_credentials"] = {
+        "token": credentials.token,
+        "refresh_token": credentials.refresh_token,
+        "token_uri": credentials.token_uri,
+        "client_id": credentials.client_id,
+        "client_secret": credentials.client_secret,
+        "scopes": credentials.scopes,
+    }
+
+    flash("Gmail linked successfully! Emails will now work.", "success")
+    
+    # Redirect to your main dashboard or home page
+    return redirect("/")
+
 def send_appointment_email(app_id, appointment_date, patient_email, patient_name, doctor_name, action, appointment_type=None):
     
     # 1. LOGIC: Build the Subject and Body (Your original logic)
